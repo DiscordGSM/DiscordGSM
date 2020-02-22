@@ -1,0 +1,30 @@
+[
+    {
+        "type": "SourceQuery",
+        "game": "Team Fortress 2",
+        "addr": "122.128.109.245",
+        "port": 27015,
+        "channel": 680159497066381361
+    },
+    {
+        "type": "SourceQuery",
+        "game": "Team Fortress 2",
+        "addr": "122.128.109.245",
+        "port": 27010,
+        "channel": 680581254625755159
+    },
+    {
+        "type": "SourceQuery",
+        "game": "Team Fortress 2",
+        "addr": "122.128.109.245",
+        "port": 27011,
+        "channel": 680159497066381361
+    },
+    {
+        "type": "SourceQuery",
+        "game": "Mordhau",
+        "addr": "192.187.127.218",
+        "port": 27015,
+        "channel": 680581254625755159
+    }
+]

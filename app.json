@@ -1,0 +1,14 @@
+{
+    "name": "Discord Game Server Monitor",
+    "description": "Monitor your game servers on Discord",
+    "env": {
+        "TOKEN": {
+            "description": "Bot token - You can get it in https://discordapp.com/developers/applications/",
+            "value": ""
+        },
+        "OWNER": {
+            "description": "Discord owner id",
+            "value": "348921660361146380"
+        }
+    }
+}

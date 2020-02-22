@@ -1,0 +1,10 @@
+{
+    "game": "Team Fortress 2",
+    "addr": "122.128.109.245",
+    "port": 27015,
+    "name": "[HK] Doctor server | Dodgeball Practice | 歡樂躲避球",
+    "map": "tfdb_baseball_rc1",
+    "maxplayers": 14,
+    "players": 0,
+    "bots": 0
+}
