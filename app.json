@@ -1,6 +1,12 @@
 {
     "name": "Discord Game Server Monitor",
     "description": "Monitor your game servers on Discord",
+    "repository": "https://github.com/BattlefieldDuck/DiscordGSM",
+    "logo": "https://github.com/BattlefieldDuck/DiscordGSM/raw/master/discordgsm.png",
+    "keywords": ["discordgsm", "discordgsm", "gameserver", "gameservers", "monitor", "dgsm", "game-servers", "discord", "gaming", "game"],
+    "scripts": {
+        "postdeploy": ""
+    },
     "env": {
         "TOKEN": {
             "description": "Bot token - You can get it in https://discordapp.com/developers/applications/",
