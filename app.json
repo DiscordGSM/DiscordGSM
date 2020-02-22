@@ -5,11 +5,11 @@
     "logo": "https://github.com/BattlefieldDuck/DiscordGSM/raw/master/discordgsm.png",
     "keywords": ["discordgsm", "discordgsm", "gameserver", "gameservers", "monitor", "dgsm", "game-servers", "discord", "gaming", "game"],
     "scripts": {
-        "postdeploy": ""
+        "postdeploy": "heroku scale worker=1"
     },
     "env": {
         "TOKEN": {
-            "description": "Bot token - You can get it in https://discordapp.com/developers/applications/",
+            "description": "Bot token - You can get it on https://discordapp.com/developers/applications/",
             "value": ""
         },
         "OWNER": {
