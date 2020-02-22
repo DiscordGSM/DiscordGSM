@@ -5,7 +5,7 @@
     "logo": "https://github.com/BattlefieldDuck/DiscordGSM/raw/master/discordgsm.png",
     "keywords": ["discordgsm", "discordgsm", "gameserver", "gameservers", "monitor", "dgsm", "game-servers", "discord", "gaming", "game"],
     "scripts": {
-        "postdeploy": "bundle exec heroku scale worker=1"
+        "postdeploy": "ps:scale worker=1"
     },
     "env": {
         "TOKEN": {
