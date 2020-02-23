@@ -21,10 +21,13 @@ Monitor your game servers on Discord, tracking your game servers live data. Pyth
     
 3. DiscordGSM is now online
 
-## Commands
-`!dgsm` `!serveradd <type> <game> <addr> <port> <channel>` `!serverdel <id>` `!servers` `!serversrefresh`
+### Invite DiscordGSM to your server
+Link: ```https://discordapp.com/api/oauth2/authorize?client_id=<client_id>&permissions=268954704&scope=bot```
+
+`<client_id>` can be founded in <https://discordapp.com/developers/applications/>
 
 ## Get Started - add game server
+Command List: `!dgsm` `!servers` `!serveradd` `!serverdel` `!servers` `!getserversjson` `!setserversjson`
 ### Method 1 - By upload servers.json
 1. Type `!getserversjson`, and download servers.json
 2. Edit servers.json manually. Example:
@@ -55,7 +58,7 @@ Monitor your game servers on Discord, tracking your game servers live data. Pyth
 
 `port`: game server query port
 
-`channel`: the channel id - the channel that display the server embed, you can get the channel id by right click the channel bar
+`channel`: the channel id - the channel that display the server embed, channel id can be get by `Copy ID`
 
 3. Upload the servers.json to discord and copy the link by right click.
 
