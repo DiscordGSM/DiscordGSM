@@ -123,7 +123,7 @@ def get_embed(server):
         # server fail to query
         color = discord.Color.from_rgb(240, 71, 71) # red
         embed = discord.Embed(title='ERROR', description=f'{settings["fieldname"]["status"]}: :warning: Fail to query', color=color)
-        embed.add_field(name=f'{settings["fieldname"]["addressport"]}', value=f'{server["addr"]}:{server["port"]}', inline=True)
+        embed.add_field(name=f'{settings["fieldname"]["port"]}', value=f'{server["addr"]}:{server["port"]}', inline=True)
     
     embed.set_footer(text=f'DiscordGSM v{VERSION} | Last update: ' + datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
 
