@@ -7,6 +7,17 @@ Monitor your game servers on Discord, tracking your game servers live data. Pyth
 ## Installing
 [![Deploy](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy?template=https://github.com/BattlefieldDuck/DiscordGSM)
 
+### After Deploy
+1. Click Configure Dynos
+    
+    ![screenshot](https://github.com/BattlefieldDuck/DiscordGSM/raw/master/images/conf-dyno.png)
+    
+2. Turn the worker on
+
+    ![screenshot](https://github.com/BattlefieldDuck/DiscordGSM/raw/master/images/worker.png)
+    
+3. DiscordGSM is now online
+
 ## Commands
 `!dgsm` `!serveradd <type> <game> <addr> <port> <channel>` `!serverdel <id>` `!servers` `!serversrefresh`
 
