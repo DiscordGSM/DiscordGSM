@@ -1,5 +1,5 @@
 import json
-from enum import Enum
+import urllib
 from bin import *
 
 # load servers.json -> get all servers type, addr, port
@@ -9,7 +9,26 @@ class Servers:
 
     # refresh query server list
     def refresh(self):
-        self.servers = self.load()
+        servers = self.load()
+
+        # get country code from ipinfo.io
+        is_edited = False
+        for server in servers:
+            if 'country' not in server:
+                try:
+                    with urllib.request.urlopen(f'https://ipinfo.io/{server["addr"]}/country') as response:
+                        country = response.read().decode("utf8")
+                        if '{' not in country: # may response error json
+                            server['country'] = country.rstrip() # rstrip is used because of \n
+                            is_edited = True
+                except:
+                    pass
+
+        if is_edited:
+            with open('configs/servers.json', 'w', encoding='utf8') as file:
+                json.dump(servers, file, ensure_ascii=False, indent=4)
+
+        self.servers = servers 
 
     # get servers data
     def load(self):

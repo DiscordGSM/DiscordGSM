@@ -2,6 +2,7 @@ import os
 import time
 import asyncio
 import aiohttp
+import requests
 from threading import Thread
 from datetime import datetime
 
@@ -38,8 +39,11 @@ messages = []
 async def on_ready():
     # set username and avatar
     with open('images/discordgsm.png', 'rb') as file:
-        avatar = file.read()
-        await bot.user.edit(username='DiscordGSM', avatar=avatar)
+        try:
+            avatar = file.read()
+            await bot.user.edit(username='DiscordGSM', avatar=avatar)
+        except:
+            pass
 
     # print info to console
     print(f'Logged in as: {bot.user.name}')
@@ -49,7 +53,8 @@ async def on_ready():
     print('----------------')
 
     # set bot presence
-    await bot.change_presence(status=discord.Status.online, activity=discord.Activity(name=f'{len(servers)} game servers', type=3))
+    activity_text = len(servers) == 0 and 'Command: !dgsm' or f'{len(servers)} game servers'
+    await bot.change_presence(status=discord.Status.online, activity=discord.Activity(name=activity_text, type=3))
 
     # remove old messages
     for server in servers:
@@ -104,10 +109,13 @@ def get_embed(server):
             emoji = ":red_circle:"
             color = discord.Color.from_rgb(32, 34, 37) # dark
 
-        embed = discord.Embed(title=f'{data["name"]}', color=color)
+        embed = discord.Embed(title=f'{data["name"]}', description=f'Connect: steam://connect/{data["addr"]}:{server["port"]}', color=color)
         embed.add_field(name=f'{settings["fieldname"]["status"]}', value=f'{emoji} {status}', inline=True)
-        embed.add_field(name=f'{settings["fieldname"]["address"]}', value=f'{data["addr"]}', inline=True)
-        embed.add_field(name=f'{settings["fieldname"]["port"]}', value=f'{data["port"]}', inline=True)
+        embed.add_field(name=f'{settings["fieldname"]["address"]}:{settings["fieldname"]["port"]}', value=f'{data["addr"]}:{data["port"]}', inline=True)
+
+        flag_emoji = ('country' in server) and (':flag_' + server['country'].lower() + f': {server["country"]}') or 'Unknown'
+        embed.add_field(name=f'{settings["fieldname"]["country"]}', value=flag_emoji, inline=True)
+
         embed.add_field(name=f'{settings["fieldname"]["game"]}', value=f'{data["game"]}', inline=True)
         embed.add_field(name=f'{settings["fieldname"]["currentmap"]}', value=f'{data["map"]}', inline=True)
 
@@ -125,7 +133,7 @@ def get_embed(server):
         embed = discord.Embed(title='ERROR', description=f'{settings["fieldname"]["status"]}: :warning: Fail to query', color=color)
         embed.add_field(name=f'{settings["fieldname"]["port"]}', value=f'{server["addr"]}:{server["port"]}', inline=True)
     
-    embed.set_footer(text=f'DiscordGSM v{VERSION} | Last update: ' + datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
+    embed.set_footer(text=f'DiscordGSM v{VERSION} | Live server status | Last update: ' + datetime.now().strftime('%Y-%m-%d %H:%M:%S'), icon_url='https://github.com/BattlefieldDuck/DiscordGSM/raw/master/images/discordgsm.png')
 
     return embed
 
@@ -135,12 +143,17 @@ def get_embed(server):
 @commands.is_owner()
 async def _dgsm(ctx):
     title = f'Command: {settings["prefix"]}dgsm'
-    description = f'Useful commands: \n{settings["prefix"]}serveradd - Add a server'
-    description += f'\n{settings["prefix"]}serverdel - Delete a server\n{settings["prefix"]}serversrefresh - Refresh server list'
+    description = f'Thanks for using Discord Game Server Monitor ([DiscordGSM](https://github.com/BattlefieldDuck/DiscordGSM))\n'
+    description += f'\nUseful commands:\n{settings["prefix"]}servers - Display the server list'
+    description += f'\n{settings["prefix"]}serveradd - Add a server'
+    description += f'\n{settings["prefix"]}serverdel - Delete a server'
+    description += f'\n{settings["prefix"]}serversrefresh - Refresh the server list'
+    description += f'\n{settings["prefix"]}getserversjson - get servers.json file'
+    description += f'\n{settings["prefix"]}setserversjson - set servers.json file'
     color = discord.Color.from_rgb(114, 137, 218) # discord theme color
     embed = discord.Embed(title=title, description=description, color=color)
-    embed.add_field(name=f'Support server', value=f'[Click Here](https://discord.gg/Cg4Au9T)', inline=True)
-    embed.add_field(name=f'Github', value=f'[Click Here](https://github.com/BattlefieldDuck/DiscordGSM)', inline=True)
+    embed.add_field(name='Support server', value='https://discord.gg/Cg4Au9T', inline=True)
+    embed.add_field(name='Github', value='https://github.com/BattlefieldDuck/DiscordGSM', inline=True)
     await ctx.send(embed=embed)
 
 # command: servers
@@ -148,24 +161,31 @@ async def _dgsm(ctx):
 @bot.command(name='serversrefresh')
 @commands.is_owner()
 async def _serversrefresh(ctx):
-    global servers
+    # remove old messages
+    global messages
+    for message in messages:
+        try:
+            await message.delete()
+        except:
+            pass
+
+    # reset messages
+    messages = []
 
     # refresh server list
     game_servers.refresh()
 
     # reload servers
+    global servers
     servers = game_servers.load()
 
     # set bot presence
-    await bot.change_presence(status=discord.Status.online, activity=discord.Activity(name=f'{len(servers)} game servers', type=3))
+    activity_text = len(servers) == 0 and 'Command: !dgsm' or f'{len(servers)} game servers'
+    await bot.change_presence(status=discord.Status.online, activity=discord.Activity(name=activity_text, type=3))
 
-    # remove old messages
+    # remove old messages in channel
     for server in servers:
         await bot.get_channel(server['channel']).purge(check=lambda m: m.author==bot.user)
-
-    # reset messages
-    global messages
-    messages = []
 
     # send embed
     for server in servers:
@@ -245,6 +265,36 @@ async def _serverdel(ctx, *args):
                 return
 
     description=f'Usage: {settings["prefix"]}serverdel <id>\nRemark: view id with command {settings["prefix"]}servers'
+    embed = discord.Embed(title=title, description=description, color=color)
+    await ctx.send(embed=embed)
+
+# command: getserversjson
+# get configs/servers.json
+@bot.command(name='getserversjson')
+@commands.is_owner()
+async def _getsfile(ctx):
+    await ctx.send(file=discord.File('configs/servers.json'))
+
+# command: setserversjson
+# set configs/servers.json
+@bot.command(name='setserversjson')
+@commands.is_owner()
+async def _serverdel(ctx, *args):
+    title = f'Command: {settings["prefix"]}setserversjson'
+    color = discord.Color.from_rgb(114, 137, 218) # discord theme color
+
+    if len(args) == 1:
+        url = args[0]
+        r = requests.get(url)
+        with open('configs/servers.json', 'wb') as file:
+            file.write(r.content)
+
+        description=f'File servers.json uploaded'
+        embed = discord.Embed(title=title, description=description, color=color)
+        await ctx.send(embed=embed)
+        return
+
+    description=f'Usage: {settings["prefix"]}setserversjson <url>\nRemark: <url> is the servers.json download url'
     embed = discord.Embed(title=title, description=description, color=color)
     await ctx.send(embed=embed)
 
