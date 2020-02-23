@@ -1,0 +1,12 @@
+{
+    "prefix": "!",
+    "refreshrate": 15,
+    "fieldname": {
+        "status": "Status",
+        "address": "Address",
+        "port": "Port",
+        "game": "Game",
+        "currentmap": "Current Map",
+        "players": "Players"
+    }
+}

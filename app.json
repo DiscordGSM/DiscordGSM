@@ -8,10 +8,6 @@
         "TOKEN": {
             "description": "Bot token - You can get it on https://discordapp.com/developers/applications/",
             "value": ""
-        },
-        "OWNER": {
-            "description": "Discord owner id",
-            "value": "348921660361146380"
         }
     }
 }

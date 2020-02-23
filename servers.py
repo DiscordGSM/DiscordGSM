@@ -2,23 +2,48 @@ import json
 from enum import Enum
 from bin import *
 
-# 1. Load servers.json -> get all servers type, addr, port
-# 2. Query the server by type, addr, port
-# 3. Save the servers query data to cache/
+# load servers.json -> get all servers type, addr, port
 class Servers:
     def __init__(self):
-        self.load()
+        self.refresh()
 
+    # refresh query server list
+    def refresh(self):
+        self.servers = self.load()
+
+    # get servers data
     def load(self):
-        # read servers.json
-        with open('config/servers.json', 'r') as file:
+        with open('configs/servers.json', 'r') as file:
             data = file.read()
 
-        # get servers
-        self.servers = json.loads(data)
+        return json.loads(data)
 
-        return self.servers
+    # add a server
+    def add(self, type, game, addr, port, channel):
+        data = {}
+        data['type'], data['game'] = type, game
+        data['addr'], data['port'] = addr, int(port)
+        data['channel'] = int(channel)
 
+        servers = self.load()
+        servers.append(data)
+
+        with open('configs/servers.json', 'w', encoding='utf8') as file:
+            json.dump(servers, file, ensure_ascii=False, indent=4)
+
+    # delete a server by id
+    def delete(self, id):
+        servers = self.load()
+        if 0 < int(id) <= len(servers):
+            del servers[int(id) - 1]
+
+            with open('configs/servers.json', 'w', encoding='utf8') as file:
+                json.dump(servers, file, ensure_ascii=False, indent=4)
+            
+            return True
+        return False
+
+    # save the servers query data to cache/
     def query(self):
         for server in self.servers:
             if server['type'] == 'SourceQuery':
@@ -29,7 +54,7 @@ class Servers:
 
                 if result:
                     server_cache.set_status('Online')
-                    server_cache.save_data(server['game'], result['GamePort'], result['Hostname'], result['Map'], result['MaxPlayers'], result['Players']-result['Bots'], result['Bots'])
+                    server_cache.save_data(server['game'], result['GamePort'], result['Hostname'], result['Map'], result['MaxPlayers'], result['Players'], result['Bots'])
                 else:
                     server_cache.set_status('Offline')
 
