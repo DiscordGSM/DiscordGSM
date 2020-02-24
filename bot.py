@@ -15,7 +15,7 @@ from bin import *
 from servers import Servers, ServerCache
 from settings import Settings
 
-VERSION = '1.0.0'
+VERSION = '1.1.0'
 
 TOKEN = os.environ["TOKEN"]
 
@@ -33,6 +33,9 @@ servers = game_servers.load()
 
 # discord messages
 messages = []
+
+# boolean is currently refreshing
+is_refresh = False
 
 # bot ready action
 @bot.event
@@ -56,13 +59,29 @@ async def on_ready():
     activity_text = len(servers) == 0 and 'Command: !dgsm' or f'{len(servers)} game servers'
     await bot.change_presence(status=discord.Status.online, activity=discord.Activity(name=activity_text, type=3))
 
-    # remove old messages
+    # get channels store to array
+    channels = []
     for server in servers:
-        await bot.get_channel(server['channel']).purge(check=lambda m: m.author==bot.user)
+        channels.append(server['channel'])
+
+    # remove duplicated channels
+    channels = list(set(channels))
+
+    for channel in channels:
+        # set channel permission
+        try:
+            await bot.get_channel(channel).set_permissions(bot.user, read_messages=True, send_messages=True, reason='Display servers embed')
+            print(f'Set channel: {channel} with permissions: read_messages, send_messages')
+        except:
+            print(f'Missing permission: Manage Roles, Manage Channels')
+
+        # remove old messages in channels
+        await bot.get_channel(channel).purge(check=lambda m: m.author==bot.user)
 
     # send embed
     for server in servers:
-        messages.append(await bot.get_channel(server['channel']).send(embed=get_embed(server)))
+        message = await bot.get_channel(server['channel']).send(embed=get_embed(server))
+        messages.append(message)
 
     # print delay time
     delay = int(settings['refreshrate']) if int(settings['refreshrate']) > 5 else 5
@@ -76,12 +95,19 @@ async def on_ready():
 @asyncio.coroutine
 async def print_servers():
     while True:
+        if is_refresh:
+            await asyncio.sleep(1)
+            continue
+
         # query servers and save cache
         game_servers.query()
 
         # edit embed
         for i in range(len(servers)):
-            await messages[i].edit(embed=get_embed(servers[i]))
+            try:
+                await messages[i].edit(embed=get_embed(servers[i]))
+            except:
+                print(f'Error: message: {messages[i]} fail to edit, message deleted or no permission. Server: {servers[i]["addr"]}:{servers[i]["port"]}')
 
         # delay server query
         delay = int(settings['refreshrate']) if int(settings['refreshrate']) > 5 else 5
@@ -161,6 +187,10 @@ async def _dgsm(ctx):
 @bot.command(name='serversrefresh')
 @commands.is_owner()
 async def _serversrefresh(ctx):
+    # currently refreshing
+    global is_refresh
+    is_refresh = True
+
     # remove old messages
     global messages
     for message in messages:
@@ -183,13 +213,25 @@ async def _serversrefresh(ctx):
     activity_text = len(servers) == 0 and 'Command: !dgsm' or f'{len(servers)} game servers'
     await bot.change_presence(status=discord.Status.online, activity=discord.Activity(name=activity_text, type=3))
 
-    # remove old messages in channel
+    # get channels store to array
+    channels = []
     for server in servers:
-        await bot.get_channel(server['channel']).purge(check=lambda m: m.author==bot.user)
+        channels.append(server['channel'])
+
+    # remove duplicated channels
+    channels = list(set(channels))
+
+    # remove old messages in channels
+    for channel in channels:
+        await bot.get_channel(channel).purge(check=lambda m: m.author==bot.user)
 
     # send embed
     for server in servers:
-        messages.append(await bot.get_channel(server['channel']).send(embed=get_embed(server)))
+        message = await bot.get_channel(server['channel']).send(embed=get_embed(server))
+        messages.append(message)
+
+    # refresh finish
+    is_refresh = False
 
     # log and send response
     print(datetime.now().strftime('%Y-%m-%d %H:%M:%S') + ' Refreshed servers')
