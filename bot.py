@@ -221,8 +221,15 @@ async def _serversrefresh(ctx):
     # remove duplicated channels
     channels = list(set(channels))
 
-    # remove old messages in channels
     for channel in channels:
+        # set channel permission
+        try:
+            await bot.get_channel(channel).set_permissions(bot.user, read_messages=True, send_messages=True, reason='Display servers embed')
+            print(f'Set channel: {channel} with permissions: read_messages, send_messages')
+        except:
+            print(f'Missing permission: Manage Roles, Manage Channels')
+
+        # remove old messages in channels
         await bot.get_channel(channel).purge(check=lambda m: m.author==bot.user)
 
     # send embed
