@@ -41,6 +41,9 @@ game_servers = Servers()
 # get servers
 servers = game_servers.load()
 
+# query the servers
+game_servers.query()
+
 # discord messages
 messages = []
 
