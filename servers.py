@@ -1,4 +1,5 @@
 import json
+import socket
 import urllib
 from bin import *
 
@@ -16,7 +17,7 @@ class Servers:
         for server in servers:
             if 'country' not in server:
                 try:
-                    with urllib.request.urlopen(f'https://ipinfo.io/{server["addr"]}/country') as response:
+                    with urllib.request.urlopen(f'https://ipinfo.io/{socket.gethostbyname(server["addr"])}/country') as response:
                         country = response.read().decode("utf8")
                         if '{' not in country: # may response error json
                             server['country'] = country.rstrip() # rstrip is used because of \n
@@ -74,6 +75,17 @@ class Servers:
                 if result:
                     server_cache.set_status('Online')
                     server_cache.save_data(server['game'], result['GamePort'], result['Hostname'], result['Map'], result['MaxPlayers'], result['Players'], result['Bots'])
+                else:
+                    server_cache.set_status('Offline')
+            elif server['type'] == 'UT3Query':
+                query = UT3Query(str(server['addr']), int(server['port']))
+                result = query.getInfo()
+
+                server_cache = ServerCache(server['addr'], server['port'])
+
+                if result:
+                    server_cache.set_status('Online')
+                    server_cache.save_data(server['game'], result['hostport'], result['hostname'], result['map'], result['maxplayers'], result['numplayers'], 0)
                 else:
                     server_cache.set_status('Offline')
 

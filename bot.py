@@ -2,6 +2,7 @@ import os
 import time
 import asyncio
 import aiohttp
+import urllib
 import requests
 from threading import Thread
 from datetime import datetime
@@ -15,9 +16,18 @@ from bin import *
 from servers import Servers, ServerCache
 from settings import Settings
 
-VERSION = '1.1.0'
+# bot token
+TOKEN = os.getenv('DGSM_TOKEN', '')
 
-TOKEN = os.environ["TOKEN"]
+# bot static data
+VERSION = '1.2.0'
+MIN_REFRESH_RATE = 15
+
+# download servers.json every heroku dyno start
+if os.getenv('DGSM_SERVERS_JSON_URL') != None:
+    r = requests.get(os.getenv('DGSM_SERVERS_JSON_URL'))
+    with open('configs/servers.json', 'wb') as file:
+        file.write(r.content)
 
 # get settings
 settings = Settings.get()
@@ -56,7 +66,7 @@ async def on_ready():
     print('----------------')
 
     # set bot presence
-    activity_text = len(servers) == 0 and 'Command: !dgsm' or f'{len(servers)} game servers'
+    activity_text = len(servers) == 0 and f'Command: {settings["prefix"]}dgsm' or f'{len(servers)} game servers'
     await bot.change_presence(status=discord.Status.online, activity=discord.Activity(name=activity_text, type=3))
 
     # get channels store to array
@@ -94,24 +104,38 @@ async def on_ready():
 # print servers to discord
 @asyncio.coroutine
 async def print_servers():
+    edit_error_count = 0
+    next_update_time = 0
+
     while True:
+        # don't continue when servers is refreshing
         if is_refresh:
             await asyncio.sleep(1)
             continue
 
-        # query servers and save cache
-        game_servers.query()
+        # edit error with some reasons (maybe messages edit limit?), anyway servers refresh will fix this issue
+        if edit_error_count >= 50:
+            edit_error_count = 0
+            _serversrefresh(None)
+            continue
 
-        # edit embed
-        for i in range(len(servers)):
-            try:
-                await messages[i].edit(embed=get_embed(servers[i]))
-            except:
-                print(f'Error: message: {messages[i]} fail to edit, message deleted or no permission. Server: {servers[i]["addr"]}:{servers[i]["port"]}')
+        if int(datetime.utcnow().timestamp()) >= next_update_time:
+            # delay server query
+            delay = int(settings['refreshrate']) if int(settings['refreshrate']) > MIN_REFRESH_RATE else MIN_REFRESH_RATE
+            next_update_time = int(datetime.utcnow().timestamp()) + delay
 
-        # delay server query
-        delay = int(settings['refreshrate']) if int(settings['refreshrate']) > 5 else 5
-        await asyncio.sleep(delay)
+            # query servers and save cache
+            game_servers.query()
+
+            # edit embed
+            for i in range(len(servers)):
+                try:
+                    await messages[i].edit(embed=get_embed(servers[i]))
+                except:
+                    edit_error_count += 1
+                    print(f'Error: message: {messages[i]} fail to edit, message deleted or no permission. Server: {servers[i]["addr"]}:{servers[i]["port"]}')
+
+        await asyncio.sleep(1)
 
 # get game server embed
 def get_embed(server):
@@ -135,11 +159,15 @@ def get_embed(server):
             emoji = ":red_circle:"
             color = discord.Color.from_rgb(32, 34, 37) # dark
 
-        embed = discord.Embed(title=f'{data["name"]}', description=f'Connect: steam://connect/{data["addr"]}:{server["port"]}', color=color)
-        embed.add_field(name=f'{settings["fieldname"]["status"]}', value=f'{emoji} {status}', inline=True)
-        embed.add_field(name=f'{settings["fieldname"]["address"]}:{settings["fieldname"]["port"]}', value=f'{data["addr"]}:{data["port"]}', inline=True)
+        if server["type"] == 'SourceQuery':
+            embed = discord.Embed(title=f'{data["name"]}', description=f'Connect: steam://connect/{data["addr"]}:{server["port"]}', color=color)
+        else:
+            embed = discord.Embed(title=f'{data["name"]}', color=color)
 
-        flag_emoji = ('country' in server) and (':flag_' + server['country'].lower() + f': {server["country"]}') or 'Unknown'
+        embed.add_field(name=f'{settings["fieldname"]["status"]}', value=f'{emoji} {status}', inline=True)
+        embed.add_field(name=f'{settings["fieldname"]["address"]}:{settings["fieldname"]["port"]}', value=f'`{data["addr"]}:{data["port"]}`', inline=True)
+
+        flag_emoji = ('country' in server) and (':flag_' + server['country'].lower() + f': {server["country"]}') or ':united_nations: Unknown'
         embed.add_field(name=f'{settings["fieldname"]["country"]}', value=flag_emoji, inline=True)
 
         embed.add_field(name=f'{settings["fieldname"]["game"]}', value=f'{data["game"]}', inline=True)
@@ -153,14 +181,17 @@ def get_embed(server):
             value = f'0' # example: 0/32
                 
         embed.add_field(name=f'{settings["fieldname"]["players"]}', value=f'{value}/{data["maxplayers"]}', inline=True)
+
+        map_image_url = f'https://github.com/DiscordGSM/Map-Thumbnails/raw/master/{urllib.parse.quote(data["game"])}/{urllib.parse.quote(data["map"])}.jpg'
+        embed.set_thumbnail(url=map_image_url)
     else:
         # server fail to query
         color = discord.Color.from_rgb(240, 71, 71) # red
         embed = discord.Embed(title='ERROR', description=f'{settings["fieldname"]["status"]}: :warning: Fail to query', color=color)
         embed.add_field(name=f'{settings["fieldname"]["port"]}', value=f'{server["addr"]}:{server["port"]}', inline=True)
     
-    embed.set_footer(text=f'DiscordGSM v{VERSION} | Live server status | Last update: ' + datetime.now().strftime('%Y-%m-%d %H:%M:%S'), icon_url='https://github.com/BattlefieldDuck/DiscordGSM/raw/master/images/discordgsm.png')
-
+    embed.set_footer(text=f'DiscordGSM v{VERSION} | Monitor game server | Last update: ' + datetime.now().strftime('%a, %Y-%m-%d %I:%M:%S%p'), icon_url='https://github.com/BattlefieldDuck/DiscordGSM/raw/master/images/discordgsm.png')
+    
     return embed
 
 # command: servers
@@ -240,13 +271,15 @@ async def _serversrefresh(ctx):
     # refresh finish
     is_refresh = False
 
-    # log and send response
+    # log
     print(datetime.now().strftime('%Y-%m-%d %H:%M:%S') + ' Refreshed servers')
-    delay = int(settings['refreshrate']) if int(settings['refreshrate']) > 5 else 5
-    title = f'Command: {settings["prefix"]}serversrefresh'
-    color = discord.Color.from_rgb(114, 137, 218) # discord theme color
-    embed = discord.Embed(title=title, description=f'Servers list refreshed', color=color)
-    await ctx.send(embed=embed)
+
+    # send response
+    if ctx != None:
+        title = f'Command: {settings["prefix"]}serversrefresh'
+        color = discord.Color.from_rgb(114, 137, 218) # discord theme color
+        embed = discord.Embed(title=title, description=f'Servers list refreshed', color=color)
+        await ctx.send(embed=embed)
 
 # command: servers
 # list all the servers in configs/servers.json
@@ -256,16 +289,16 @@ async def _servers(ctx):
     title = f'Command: {settings["prefix"]}servers'
     color = discord.Color.from_rgb(114, 137, 218) # discord theme color
     embed = discord.Embed(title=title, color=color)
-    type_game, addr_port, channel = '', '', ''
+    type, addr_port, channel = '', '', ''
 
     servers = game_servers.load()
 
     for i in range(len(servers)):
-        type_game += f'{i+1}. {servers[i]["type"]}:{servers[i]["game"]}\n'
-        addr_port += f'{servers[i]["addr"]}:{servers[i]["port"]}\n'
-        channel += f'{servers[i]["channel"]}\n'
+        type += f'`{i+1}`. {servers[i]["type"]}\n'
+        addr_port += f'`{servers[i]["addr"]}:{servers[i]["port"]}`\n'
+        channel += f'`{servers[i]["channel"]}`\n'
 
-    embed.add_field(name='ID. Type:Game', value=type_game, inline=True)
+    embed.add_field(name='ID. Type', value=type, inline=True)
     embed.add_field(name='Address:Port', value=addr_port, inline=True)
     embed.add_field(name='Channel ID', value=channel, inline=True)
     await ctx.send(embed=embed)

@@ -5,9 +5,14 @@
     "logo": "https://github.com/BattlefieldDuck/DiscordGSM/raw/master/images/discordgsm.png",
     "keywords": ["discordgsm", "discordgsm", "gameserver", "gameservers", "monitor", "dgsm", "game-servers", "discord", "gaming", "game"],
     "env": {
-        "TOKEN": {
+        "DGSM_TOKEN": {
             "description": "Bot token - You can get it on https://discordapp.com/developers/applications/",
             "value": ""
+        },
+        "DGSM_SERVERS_JSON_URL": {
+            "description": "servers.json download url (You can set it later)",
+            "value": "",
+            "required": false
         }
     }
 }

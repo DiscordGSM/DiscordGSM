@@ -1,6 +1,6 @@
 {
     "prefix": "!",
-    "refreshrate": 15,
+    "refreshrate": 30,
     "fieldname": {
         "status": "Status",
         "address": "Address",
