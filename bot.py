@@ -29,6 +29,12 @@ if os.getenv('DGSM_SERVERS_JSON_URL') != None:
     with open('configs/servers.json', 'wb') as file:
         file.write(r.content)
 
+# download settings.json every heroku dyno start
+if os.getenv('DGSM_SETTINGS_JSON_URL') != None:
+    r = requests.get(os.getenv('DGSM_SETTINGS_JSON_URL'))
+    with open('configs/settings.json', 'wb') as file:
+        file.write(r.content)
+
 # get settings
 settings = Settings.get()
 
