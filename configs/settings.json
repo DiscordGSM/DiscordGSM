@@ -1,4 +1,5 @@
 {
+    "token": "",
     "prefix": "!",
     "refreshrate": 30,
     "fieldname": {
