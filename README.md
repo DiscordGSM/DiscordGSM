@@ -1,5 +1,5 @@
 # DiscordGSM
-![screenshot](https://github.com/BattlefieldDuck/DiscordGSM/raw/master/images/thumbnail.png)
+![screenshot](https://github.com/BattlefieldDuck/DiscordGSM/raw/master/images/v1.2.1.png)
 
 ## Introduction
 Monitor your game servers on Discord, tracking your game servers live data. Python 3.6 is used.
