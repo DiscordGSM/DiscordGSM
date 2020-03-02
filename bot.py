@@ -17,7 +17,7 @@ from servers import Servers, ServerCache
 from settings import Settings
 
 # bot static data
-VERSION = '1.2.0'
+VERSION = '1.2.1'
 MIN_REFRESH_RATE = 15
 
 # download servers.json every heroku dyno start
