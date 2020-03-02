@@ -16,9 +16,6 @@ from bin import *
 from servers import Servers, ServerCache
 from settings import Settings
 
-# bot token
-TOKEN = os.getenv('DGSM_TOKEN', '')
-
 # bot static data
 VERSION = '1.2.0'
 MIN_REFRESH_RATE = 15
@@ -37,6 +34,9 @@ if os.getenv('DGSM_SETTINGS_JSON_URL') != None:
 
 # get settings
 settings = Settings.get()
+
+# bot token
+TOKEN = os.getenv('DGSM_TOKEN', settings['token'])
 
 # set up bot
 bot = commands.Bot(command_prefix=settings['prefix'])
