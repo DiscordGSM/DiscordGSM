@@ -9,12 +9,12 @@
             "description": "Bot token - You can get it on https://discordapp.com/developers/applications/",
             "value": ""
         },
-        "DGSM_SERVERS_JSON_URL": {
+        "SERVERS_JSON_URL": {
             "description": "servers.json download url (You can set it later)",
             "value": "",
             "required": false
         },
-        "DGSM_SETTINGS_JSON_URL": {
+        "SETTINGS_JSON_URL": {
             "description": "settings.json download url (You can set it later)",
             "value": "",
             "required": false

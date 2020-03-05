@@ -21,14 +21,14 @@ VERSION = '1.3.0'
 MIN_REFRESH_RATE = 5
 
 # download servers.json every heroku dyno start
-if os.getenv('DGSM_SERVERS_JSON_URL') != None:
-    r = requests.get(os.getenv('DGSM_SERVERS_JSON_URL'))
+if os.getenv('SERVERS_JSON_URL') != None:
+    r = requests.get(os.getenv('SERVERS_JSON_URL'))
     with open('configs/servers.json', 'wb') as file:
         file.write(r.content)
 
 # download settings.json every heroku dyno start
-if os.getenv('DGSM_SETTINGS_JSON_URL') != None:
-    r = requests.get(os.getenv('DGSM_SETTINGS_JSON_URL'))
+if os.getenv('SETTINGS_JSON_URL') != None:
+    r = requests.get(os.getenv('SETTINGS_JSON_URL'))
     with open('configs/settings.json', 'wb') as file:
         file.write(r.content)
 
