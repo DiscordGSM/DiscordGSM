@@ -17,8 +17,8 @@ from servers import Servers, ServerCache
 from settings import Settings
 
 # bot static data
-VERSION = '1.2.1'
-MIN_REFRESH_RATE = 15
+VERSION = '1.3.0'
+MIN_REFRESH_RATE = 5
 
 # download servers.json every heroku dyno start
 if os.getenv('DGSM_SERVERS_JSON_URL') != None:
@@ -44,11 +44,11 @@ bot = commands.Bot(command_prefix=settings['prefix'])
 # query servers and save cache
 game_servers = Servers()
 
+# query servers and save cache
+game_servers.query()
+
 # get servers
 servers = game_servers.load()
-
-# query the servers
-game_servers.query()
 
 # discord messages
 messages = []
@@ -103,8 +103,8 @@ async def on_ready():
         messages.append(message)
 
     # print delay time
-    delay = int(settings['refreshrate']) if int(settings['refreshrate']) > 5 else 5
-    print(datetime.now().strftime('%Y-%m-%d %H:%M:%S') + f' Edit messages every {delay} second')
+    delay = int(settings['refreshrate']) if int(settings['refreshrate']) > MIN_REFRESH_RATE else MIN_REFRESH_RATE
+    print(datetime.now().strftime('%Y-%m-%d %H:%M:%S') + f' Query servers every {delay} seconds')
 
     # start print servers
     t = Thread(target=await print_servers())
@@ -123,9 +123,11 @@ async def print_servers():
             continue
 
         # edit error with some reasons (maybe messages edit limit?), anyway servers refresh will fix this issue
-        if edit_error_count >= 50:
+        if edit_error_count >= 10:
             edit_error_count = 0
-            _serversrefresh(None)
+
+            # refresh discord servers list
+            await refresh_servers_list()
             continue
 
         if int(datetime.utcnow().timestamp()) >= next_update_time:
@@ -137,12 +139,17 @@ async def print_servers():
             game_servers.query()
 
             # edit embed
-            for i in range(len(servers)):
+            for i, server in zip(range(len(servers)), servers):
+                # load server cache. If the data is the same, don't update the discord message
+                server_cache = ServerCache(server['addr'], server['port'])
+                status = server_cache.get_status()
+                if status == 'Same': continue
+
                 try:
-                    await messages[i].edit(embed=get_embed(servers[i]))
+                    await messages[i].edit(embed=get_embed(server))
                 except:
                     edit_error_count += 1
-                    print(f'Error: message: {messages[i]} fail to edit, message deleted or no permission. Server: {servers[i]["addr"]}:{servers[i]["port"]}')
+                    print(f'Error: message: {messages[i]} fail to edit, message deleted or no permission. Server: {server["addr"]}:{server["port"]}')
 
         await asyncio.sleep(1)
 
@@ -150,14 +157,17 @@ async def print_servers():
 def get_embed(server):
     # load server cache
     server_cache = ServerCache(server['addr'], server['port'])
+
+    # load server status Online/Offline
+    status = server_cache.get_status()
+    if status == 'Same': status = 'Online'
+
+    # load server data
     data = server_cache.get_data()
 
     if data:
-        # load server status Online/Offline
-        status = server_cache.get_status()
-
         if status == 'Online':
-            emoji = ":green_circle:"
+            emoji = ':green_circle:'
             if data['maxplayers'] <= data['players']:
                 color = discord.Color.from_rgb(240, 71, 71) # red
             elif data['maxplayers'] <= data['players'] * 2:
@@ -165,10 +175,10 @@ def get_embed(server):
             else:
                 color = discord.Color.from_rgb(67, 181, 129) # green
         else:
-            emoji = ":red_circle:"
+            emoji = ':red_circle:'
             color = discord.Color.from_rgb(32, 34, 37) # dark
 
-        if server["type"] == 'SourceQuery':
+        if server['type'] == 'SourceQuery':
             embed = discord.Embed(title=f'{data["name"]}', description=f'Connect: steam://connect/{data["addr"]}:{server["port"]}', color=color)
         else:
             embed = discord.Embed(title=f'{data["name"]}', color=color)
@@ -184,17 +194,20 @@ def get_embed(server):
 
         if status == 'Online':
             value = f'{data["players"]}' # example: 20/32
-            if data['bots'] > 0:
-                value += f' ({data["bots"]})' # example: 20 (2)/32
+            if data['bots'] > 0: value += f' ({data["bots"]})' # example: 20 (2)/32
         else:
-            value = f'0' # example: 0/32
+            value = '0' # example: 0/32
                 
         embed.add_field(name=f'{settings["fieldname"]["players"]}', value=f'{value}/{data["maxplayers"]}', inline=True)
 
-        map_image_url = f'https://github.com/DiscordGSM/Map-Thumbnails/raw/master/{urllib.parse.quote(data["game"])}/{urllib.parse.quote(data["map"])}.jpg'
-        embed.set_thumbnail(url=map_image_url)
+        if 'image_url' in server:
+            image_url = str(server['image_url'])
+        else:
+            image_url = f'https://github.com/DiscordGSM/Map-Thumbnails/raw/master/{urllib.parse.quote(data["game"])}/{urllib.parse.quote(data["map"])}.jpg'
+
+        embed.set_thumbnail(url=image_url)
     else:
-        # server fail to query
+        # server fail to query but success before
         color = discord.Color.from_rgb(240, 71, 71) # red
         embed = discord.Embed(title='ERROR', description=f'{settings["fieldname"]["status"]}: :warning: Fail to query', color=color)
         embed.add_field(name=f'{settings["fieldname"]["port"]}', value=f'{server["addr"]}:{server["port"]}', inline=True)
@@ -227,8 +240,19 @@ async def _dgsm(ctx):
 @bot.command(name='serversrefresh')
 @commands.is_owner()
 async def _serversrefresh(ctx):
+    # refresh discord servers list
+    await refresh_servers_list()
+
+    # send response
+    title = f'Command: {settings["prefix"]}serversrefresh'
+    color = discord.Color.from_rgb(114, 137, 218) # discord theme color
+    embed = discord.Embed(title=title, description=f'Servers list refreshed', color=color)
+    await ctx.send(embed=embed)
+
+async def refresh_servers_list():
     # currently refreshing
     global is_refresh
+    if is_refresh: return
     is_refresh = True
 
     # remove old messages
@@ -261,16 +285,9 @@ async def _serversrefresh(ctx):
     # remove duplicated channels
     channels = list(set(channels))
 
-    for channel in channels:
-        # set channel permission
-        try:
-            await bot.get_channel(channel).set_permissions(bot.user, read_messages=True, send_messages=True, reason='Display servers embed')
-            print(f'Set channel: {channel} with permissions: read_messages, send_messages')
-        except:
-            print(f'Missing permission: Manage Roles, Manage Channels')
-
-        # remove old messages in channels
-        await bot.get_channel(channel).purge(check=lambda m: m.author==bot.user)
+    # set channel permission and purge messages
+    tasks = [set_channel_permission_and_purge_messages(channel) for channel in channels]
+    await asyncio.wait(tasks, return_when=asyncio.ALL_COMPLETED, timeout=None)
 
     # send embed
     for server in servers:
@@ -283,12 +300,16 @@ async def _serversrefresh(ctx):
     # log
     print(datetime.now().strftime('%Y-%m-%d %H:%M:%S') + ' Refreshed servers')
 
-    # send response
-    if ctx != None:
-        title = f'Command: {settings["prefix"]}serversrefresh'
-        color = discord.Color.from_rgb(114, 137, 218) # discord theme color
-        embed = discord.Embed(title=title, description=f'Servers list refreshed', color=color)
-        await ctx.send(embed=embed)
+async def set_channel_permission_and_purge_messages(channel):
+    # set channel permission
+    try:
+        await bot.get_channel(channel).set_permissions(bot.user, read_messages=True, send_messages=True, reason='Display servers embed')
+        print(f'Set channel: {channel} with permissions: read_messages, send_messages')
+    except:
+        print(f'Missing permission: Manage Roles, Manage Channels')
+
+    # remove old messages in channels
+    await bot.get_channel(channel).purge(check=lambda m: m.author==bot.user)
 
 # command: servers
 # list all the servers in configs/servers.json
@@ -326,6 +347,9 @@ async def _serveradd(ctx, *args):
         if port.isdigit() and channel.isdigit():
             game_servers.add(type, game, addr, port, channel)
 
+            # refresh discord servers list
+            await refresh_servers_list()
+
             description=f'Server added successfully'
             embed = discord.Embed(title=title, description=description, color=color)
             embed.add_field(name='Type:Game', value=f'{type}:{game}', inline=True)
@@ -350,6 +374,9 @@ async def _serverdel(ctx, *args):
         server_id = args[0]
         if server_id.isdigit():
             if game_servers.delete(server_id):
+                # refresh discord servers list
+                await refresh_servers_list()
+
                 description=f'Server deleted successfully. ID: {server_id}'
                 embed = discord.Embed(title=title, description=description, color=color)
                 await ctx.send(embed=embed)

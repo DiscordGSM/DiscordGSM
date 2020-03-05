@@ -1,6 +1,7 @@
 import json
 import socket
 import urllib
+import asyncio
 from bin import *
 
 # load servers.json -> get all servers type, addr, port
@@ -65,29 +66,31 @@ class Servers:
 
     # save the servers query data to cache/
     def query(self):
-        for server in self.servers:
-            if server['type'] == 'SourceQuery':
-                query = SourceQuery(str(server['addr']), int(server['port']))
-                result = query.getInfo()
+        tasks = [self.query_save_cache(server) for server in self.servers]
+        asyncio.wait(tasks, return_when=asyncio.ALL_COMPLETED, timeout=None)
+    
+    def query_save_cache(self, server):
+        if server['type'] == 'SourceQuery':
+            query = SourceQuery(str(server['addr']), int(server['port']))
+            result = query.getInfo()
+            query.disconnect()
 
-                server_cache = ServerCache(server['addr'], server['port'])
+            server_cache = ServerCache(server['addr'], server['port'])
+            if result:
+                server_cache.save_data(server['game'], result['GamePort'], result['Hostname'], result['Map'], result['MaxPlayers'], result['Players'], result['Bots'])
+            else:
+                server_cache.set_status('Offline')
+        elif server['type'] == 'UT3Query':
+            query = UT3Query(str(server['addr']), int(server['port']))
+            result = query.getInfo()
+            query.disconnect()
 
-                if result:
-                    server_cache.set_status('Online')
-                    server_cache.save_data(server['game'], result['GamePort'], result['Hostname'], result['Map'], result['MaxPlayers'], result['Players'], result['Bots'])
-                else:
-                    server_cache.set_status('Offline')
-            elif server['type'] == 'UT3Query':
-                query = UT3Query(str(server['addr']), int(server['port']))
-                result = query.getInfo()
+            server_cache = ServerCache(server['addr'], server['port'])
+            if result:
+                server_cache.save_data(server['game'], result['hostport'], result['hostname'], result['map'], result['maxplayers'], result['numplayers'], 0)
+            else:
+                server_cache.set_status('Offline')
 
-                server_cache = ServerCache(server['addr'], server['port'])
-
-                if result:
-                    server_cache.set_status('Online')
-                    server_cache.save_data(server['game'], result['hostport'], result['hostname'], result['map'], result['maxplayers'], result['numplayers'], 0)
-                else:
-                    server_cache.set_status('Offline')
 
 # Game Server Data
 class ServerCache:
@@ -97,12 +100,16 @@ class ServerCache:
         self.file_name = "".join(i for i in self.file_name if i not in "\/:*?<>|")
 
     def get_status(self):
-        with open(f'cache/{self.file_name}-status.txt', 'r', encoding='utf8') as file:
-            return file.read()
+        try:
+            with open(f'cache/{self.file_name}-status.txt', 'r', encoding='utf8') as file:
+                return file.read()
+        except:
+            return False
 
     def set_status(self, status):
         with open(f'cache/{self.file_name}-status.txt', 'w', encoding='utf8') as file:
             file.write(str(status))
+
 
     def get_data(self):
         try:
@@ -122,6 +129,13 @@ class ServerCache:
 
         # save current players count, bots count
         data['players'], data['bots'] = players, bots
+
+        # if server is online and the data is the same, set status to Same
+        if data == self.get_data() and self.get_status() != 'Offline':
+            self.set_status('Same')
+            return
+
+        self.set_status('Online')
 
         with open(f'cache/{self.file_name}.json', 'w', encoding='utf8') as file:
             json.dump(data, file, ensure_ascii=False, indent=4)

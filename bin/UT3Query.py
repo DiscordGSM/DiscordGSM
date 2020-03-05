@@ -33,7 +33,11 @@ class UT3Query(object):
             return False
 
         # second request
-        token = int(response[5:].decode('ascii').strip('\x00')).to_bytes(4, byteorder='big', signed=True)
+        try:
+            token = int(response[5:].decode('ascii').strip('\x00')).to_bytes(4, byteorder='big', signed=True)
+        except:
+            return False
+        
         self.sock.send(b'\xFE\xFD\x00\x10\x20\x30\x40'+token+b'\xFF\xFF\xFF\x01')
         try:
             response = self.sock.recv(4096)
