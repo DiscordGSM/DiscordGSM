@@ -1,7 +1,7 @@
 {
     "token": "",
     "prefix": "!",
-    "refreshrate": 30,
+    "refreshrate": 15,
     "fieldname": {
         "status": "Status",
         "address": "Address",
