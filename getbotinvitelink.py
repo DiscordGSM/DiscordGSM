@@ -4,7 +4,7 @@ from discord.ext import commands
 
 bot = discord.Client()
 
-TOKEN = os.environ["TOKEN"]
+TOKEN = os.environ["DGSM_TOKEN"]
 
 @bot.event
 async def on_ready():
