@@ -1,10 +1,12 @@
 import os
 import discord
 from discord.ext import commands
+from settings import Settings
 
 bot = discord.Client()
 
-TOKEN = os.environ["DGSM_TOKEN"]
+settings = Settings.get()
+TOKEN = os.getenv('DGSM_TOKEN', settings['token'])
 
 @bot.event
 async def on_ready():

@@ -77,7 +77,7 @@ class Servers:
 
             server_cache = ServerCache(server['addr'], server['port'])
             if result:
-                server_cache.save_data(server['game'], result['GamePort'], result['Hostname'], result['Map'], result['MaxPlayers'], result['Players'], result['Bots'])
+                server_cache.save_data(server['game'], result['GamePort'], result['Hostname'], result['Map'], result['MaxPlayers'], result['Players'], result['Bots'], result['Password'] == 0x01)
             else:
                 server_cache.set_status('Offline')
         elif server['type'] == 'UT3Query':
@@ -87,7 +87,7 @@ class Servers:
 
             server_cache = ServerCache(server['addr'], server['port'])
             if result:
-                server_cache.save_data(server['game'], result['hostport'], result['hostname'], result['map'], result['maxplayers'], result['numplayers'], 0)
+                server_cache.save_data(server['game'], result['hostport'], result['hostname'], result['map'], result['maxplayers'], result['numplayers'], 0, result['gamemode'] == 'closedplaying')
             else:
                 server_cache.set_status('Offline')
 
@@ -101,15 +101,27 @@ class ServerCache:
 
     def get_status(self):
         try:
-            with open(f'cache/{self.file_name}-status.txt', 'r', encoding='utf8') as file:
+            with open(f'cache/{self.file_name}.txt', 'r', encoding='utf8') as file:
+                return file.read()
+        except:
+            return False
+
+    def get_old_status(self):
+        try:
+            with open(f'cache/{self.file_name}-old.txt', 'r', encoding='utf8') as file:
                 return file.read()
         except:
             return False
 
     def set_status(self, status):
-        with open(f'cache/{self.file_name}-status.txt', 'w', encoding='utf8') as file:
-            file.write(str(status))
+        # save old status
+        old_status = self.get_status()
+        if old_status:
+            with open(f'cache/{self.file_name}-old.txt', 'w', encoding='utf8') as file:
+                file.write(old_status)
 
+        with open(f'cache/{self.file_name}.txt', 'w', encoding='utf8') as file:
+            file.write(str(status))
 
     def get_data(self):
         try:
@@ -118,7 +130,20 @@ class ServerCache:
         except EnvironmentError:
             return False
 
-    def save_data(self, game, gameport, name, map, maxplayers, players, bots):
+    def get_old_data(self):
+        try:
+            with open(f'cache/{self.file_name}-old.json', 'r', encoding='utf8') as file:
+                return json.load(file)
+        except EnvironmentError:
+            return False
+
+    def save_data(self, game, gameport, name, map, maxplayers, players, bots, password):
+        # save old data
+        old_data = self.get_data()
+        if old_data:
+            with open(f'cache/{self.file_name}-old.json', 'w', encoding='utf8') as file:
+                json.dump(old_data, file, ensure_ascii=False, indent=4)
+
         data = {}
 
         # save game name, ip address, query port
@@ -128,14 +153,14 @@ class ServerCache:
         data['name'], data['map'], data['maxplayers'] = name, map, maxplayers
 
         # save current players count, bots count
-        data['players'], data['bots'] = players, bots
-
-        # if server is online and the data is the same, set status to Same
-        if data == self.get_data() and self.get_status() != 'Offline':
-            self.set_status('Same')
-            return
+        data['players'], data['bots'], data['password'] = players, bots, password
 
         self.set_status('Online')
 
         with open(f'cache/{self.file_name}.json', 'w', encoding='utf8') as file:
             json.dump(data, file, ensure_ascii=False, indent=4)
+
+    def has_changed(self):
+        # compare old and new data, see any changes, if yes, edit the message
+        return self.get_old_data() != self.get_data() or self.get_old_status() != self.get_status()
+

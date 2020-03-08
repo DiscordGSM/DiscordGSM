@@ -1,6 +1,7 @@
 import os
 import re
 import requests
+import shutil
 import zipfile
 from distutils.dir_util import copy_tree
 
@@ -12,7 +13,7 @@ local_version = 'v' + local_version[0]
 print(f'Local version:\n{local_version}')
 
 # get remote version
-url = 'https://api.github.com/repos/BattlefieldDuck/DiscordGSM/releases/latest'
+url = 'https://api.github.com/repos/DiscordGSM/DiscordGSM/releases/latest'
 r = requests.get(url)
 remote_version = re.findall('tag_name":"(.*?)"', r.text)
 remote_version = remote_version[0]
@@ -28,7 +29,7 @@ else:
 
         # download discordgsm   
         print(f'Download latest DiscordGSM...')
-        download_url = f'https://github.com/BattlefieldDuck/DiscordGSM/archive/{remote_version}.zip'
+        download_url = f'https://github.com/DiscordGSM/DiscordGSM/archive/{remote_version}.zip'
         with open('temp/DiscordGSM.zip', 'wb') as file:
             r = requests.get(download_url)
             file.write(r.content)
