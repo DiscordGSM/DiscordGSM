@@ -194,8 +194,11 @@ def get_embed(server):
             color = discord.Color.from_rgb(32, 34, 37) # dark
 
         title = (data['password'] and ':lock: ' or '') + data["name"]
+        description = ('custom' in server) and server['custom'] or ''
         if server['type'] == 'SourceQuery':
-            embed = discord.Embed(title=title, description=f'Connect: steam://connect/{data["addr"]}:{server["port"]}', color=color)
+            embed = discord.Embed(title=title, description=f'Connect: steam://connect/{data["addr"]}:{server["port"]}\n' + description, color=color)
+        elif description.strip():
+            embed = discord.Embed(title=title, description=description, color=color)
         else:
             embed = discord.Embed(title=title, color=color)
 
