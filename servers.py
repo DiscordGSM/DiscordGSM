@@ -87,7 +87,7 @@ class Servers:
 
             server_cache = ServerCache(server['addr'], server['port'])
             if result:
-                server_cache.save_data(server['game'], result['hostport'], result['hostname'], result['map'], result['maxplayers'], result['numplayers'], 0, result['gamemode'] == 'closedplaying')
+                server_cache.save_data(server['game'], result['hostport'], result['hostname'], result['map'], result['maxplayers'], result['numplayers'], 0, False)
             else:
                 server_cache.set_status('Offline')
 
