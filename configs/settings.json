@@ -1,6 +1,8 @@
 {
     "token": "",
     "prefix": "!",
+    "role_id": 123, 
+    "image_url": "",
     "refreshrate": 15,
     "fieldname": {
         "status": "Status",

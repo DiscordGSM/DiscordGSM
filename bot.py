@@ -55,6 +55,9 @@ settings = Settings.get()
 # bot token
 TOKEN = os.getenv('DGSM_TOKEN', settings['token'])
 
+#Role ID
+ROLE_ID = os.getenv('ROLE_ID', settings['role_id'])
+
 # set up bot
 bot = commands.Bot(command_prefix=settings['prefix'])
 
@@ -221,6 +224,9 @@ def get_embed(server):
 
         if 'image_url' in server:
             image_url = str(server['image_url'])
+        elif 'image_url' in settings:
+            temp_image_url = os.getenv('IMAGE_URL', settings['image_url'])
+            image_url = f'{temp_image_url}/{urllib.parse.quote(data["map"])}.jpg'
         else:
             image_url = f'https://github.com/DiscordGSM/Map-Thumbnails/raw/master/{urllib.parse.quote(data["game"])}/{urllib.parse.quote(data["map"])}.jpg'
 
@@ -238,7 +244,7 @@ def get_embed(server):
 # command: servers
 # list all the servers in configs/servers.json
 @bot.command(name='dgsm', aliases=['discordgsm'])
-@commands.is_owner()
+@commands.check_any(commands.has_role(ROLE_ID), commands.is_owner())
 async def _dgsm(ctx):
     title = f'Command: {settings["prefix"]}dgsm'
     description = f'Thanks for using Discord Game Server Monitor ([DiscordGSM](https://github.com/BattlefieldDuck/DiscordGSM))\n'
@@ -257,7 +263,7 @@ async def _dgsm(ctx):
 # command: servers
 # list all the servers in configs/servers.json
 @bot.command(name='serversrefresh')
-@commands.is_owner()
+@commands.check_any(commands.has_role(ROLE_ID), commands.is_owner())
 async def _serversrefresh(ctx):
     # refresh discord servers list
     await refresh_servers_list()
@@ -336,7 +342,7 @@ async def set_channel_permission_and_purge_messages(channel):
 # command: servers
 # list all the servers in configs/servers.json
 @bot.command(name='servers')
-@commands.is_owner()
+@commands.check_any(commands.has_role(ROLE_ID), commands.is_owner())
 async def _servers(ctx):
     title = f'Command: {settings["prefix"]}servers'
     color = discord.Color.from_rgb(114, 137, 218) # discord theme color
@@ -358,7 +364,7 @@ async def _servers(ctx):
 # command: serveradd
 # add a server to configs/servers.json
 @bot.command(name='serveradd')
-@commands.is_owner()
+@commands.check_any(commands.has_role(ROLE_ID), commands.is_owner())
 async def _serveradd(ctx, *args):
     title = f'Command: {settings["prefix"]}serveradd'
     color = discord.Color.from_rgb(114, 137, 218) # discord theme color
@@ -387,7 +393,7 @@ async def _serveradd(ctx, *args):
 # command: serverdel
 # delete a server by id from configs/servers.json
 @bot.command(name='serverdel')
-@commands.is_owner()
+@commands.check_any(commands.has_role(ROLE_ID), commands.is_owner())
 async def _serverdel(ctx, *args):
     title = f'Command: {settings["prefix"]}serverdel'
     color = discord.Color.from_rgb(114, 137, 218) # discord theme color
@@ -411,14 +417,14 @@ async def _serverdel(ctx, *args):
 # command: getserversjson
 # get configs/servers.json
 @bot.command(name='getserversjson')
-@commands.is_owner()
+@commands.check_any(commands.has_role(ROLE_ID), commands.is_owner())
 async def _getsfile(ctx):
     await ctx.send(file=discord.File('configs/servers.json'))
 
 # command: setserversjson
 # set configs/servers.json
 @bot.command(name='setserversjson')
-@commands.is_owner()
+@commands.check_any(commands.has_role(ROLE_ID), commands.is_owner())
 async def _serverdel(ctx, *args):
     title = f'Command: {settings["prefix"]}setserversjson'
     color = discord.Color.from_rgb(114, 137, 218) # discord theme color
@@ -437,6 +443,12 @@ async def _serverdel(ctx, *args):
     description=f'Usage: {settings["prefix"]}setserversjson <url>\nRemark: <url> is the servers.json download url'
     embed = discord.Embed(title=title, description=description, color=color)
     await ctx.send(embed=embed)
+
+#Error Handling Missing Role
+@bot.event
+async def on_command_error (ctx,error):
+    if isinstance(error, commands.MissingRole):
+        await ctx.send('''You dont have access to this commands!''')
 
 # run the bot
 print('Starting bot...')
