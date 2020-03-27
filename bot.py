@@ -58,6 +58,9 @@ TOKEN = os.getenv('DGSM_TOKEN', settings['token'])
 #Role ID
 ROLE_ID = os.getenv('ROLE_ID', settings['role_id'])
 
+#IMAGE URL Checking
+RIMAGE_URL = os.getenv('IMAGE_URL', settings['image_url'])
+
 # set up bot
 bot = commands.Bot(command_prefix=settings['prefix'])
 
@@ -224,7 +227,7 @@ def get_embed(server):
 
         if 'image_url' in server:
             image_url = str(server['image_url'])
-        elif 'image_url' in settings:
+        elif RIMAGE_URL != "":
             temp_image_url = os.getenv('IMAGE_URL', settings['image_url'])
             image_url = f'{temp_image_url}/{urllib.parse.quote(data["map"])}.jpg'
         else:
