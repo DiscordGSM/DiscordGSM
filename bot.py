@@ -450,8 +450,11 @@ async def _serverdel(ctx, *args):
 #Error Handling Missing Role
 @bot.event
 async def on_command_error (ctx,error):
-    if isinstance(error, commands.MissingRole):
-        await ctx.send('''You dont have access to this commands!''')
+    if isinstance(error, commands.CheckAnyFailure):
+        message=await ctx.send('''You dont have access to this commands!''')
+        await asyncio.sleep(10)
+        await message.delete()
+
 
 # run the bot
 print('Starting bot...')
