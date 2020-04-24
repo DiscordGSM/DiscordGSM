@@ -26,7 +26,7 @@ class GamedigQuery(object):
                 result['Hostname'] = json_reader['name']
                 result['Map'] = json_reader['map']
                 result['Players'] = len(json_reader['players'])
-                result['MaxPlayers'] = json_reader['maxplayers']
+                result['MaxPlayers'] = int(json_reader['maxplayers'])
                 result['Bots'] = len(json_reader['bots'])
                 result['Password'] = json_reader['password']
 
@@ -41,6 +41,7 @@ class GamedigQuery(object):
                 return False
         except:
             return False
+
 
 if __name__ == '__main__':
     gamedigQuery = GamedigQuery("wolfensteinet", "127.0.0.1", 27960)
