@@ -90,6 +90,16 @@ class Servers:
                 server_cache.save_data(server['game'], result['hostport'], result['hostname'], result['map'], result['maxplayers'], result['numplayers'], 0, False)
             else:
                 server_cache.set_status('Offline')
+        elif server['type'] == 'Gamedig':
+            query = GamedigQuery(str(server['game']), str(server['addr']), int(server['port']))
+            result = query.getInfo()
+
+            server_cache = ServerCache(server['addr'], server['port'])
+            if result:
+                server_cache.save_data(server['game'], result['GamePort'], result['Hostname'], result['Map'],result['MaxPlayers'], result['Players'], result['Bots'], result['Password'] == 0x01)
+            else:
+                server_cache.set_status('Offline')
+
 
 
 # Game Server Data
