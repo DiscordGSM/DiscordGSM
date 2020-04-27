@@ -13,6 +13,11 @@
             "description": "servers.json download url (You can set it later)",
             "value": "",
             "required": false
+        },
+        "SETTINGS_JSON_URL": {
+            "description": "settings.json download url (You can set it later)",
+            "value": "",
+            "required": false
         }
     },
     "buildpacks": [
