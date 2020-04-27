@@ -13,7 +13,21 @@
             "description": "servers.json download url (You can set it later)",
             "value": "",
             "required": false
+        }
+    },
+    "buildpacks": [
+        {
+            "url": "https://github.com/heroku/heroku-buildpack-python"
         },
-        "BUILDPACK_URL": "https://github.com/heroku/heroku-buildpack-multi"
+        {
+            "url": "https://github.com/heroku/heroku-buildpack-nodejs"
+        }
+    ],
+    "environments": {
+        "test": {
+            "scripts": {
+                "test": "npm install -g gamedig"
+            }
+        }
     }
 }
