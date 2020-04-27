@@ -13,6 +13,7 @@
             "description": "servers.json download url (You can set it later)",
             "value": "",
             "required": false
-        }
+        },
+        "BUILDPACK_URL": "https://github.com/heroku/heroku-buildpack-multi"
     }
 }
