@@ -127,10 +127,10 @@ class ServerCache:
 
     def set_status(self, status):
         # save old status
-        old_status = self.get_status()
-        if old_status:
-            with open(f'cache/{self.file_name}-old.txt', 'w', encoding='utf8') as file:
-                file.write(old_status)
+        ## old_status = self.get_status()
+        ## if old_status:
+        ##     with open(f'cache/{self.file_name}-old.txt', 'w', encoding='utf8') as file:
+        ##         file.write(old_status)
 
         with open(f'cache/{self.file_name}.txt', 'w', encoding='utf8') as file:
             file.write(str(status))
