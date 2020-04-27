@@ -67,7 +67,7 @@ class Servers:
     # save the servers query data to cache/
     def query(self):
         tasks = [self.query_save_cache(server) for server in self.servers]
-        asyncio.wait(tasks, return_when=asyncio.ALL_COMPLETED, timeout=5)
+        asyncio.wait(tasks, return_when=asyncio.ALL_COMPLETED, timeout=15)
 
     def query_save_cache(self, server):
         if server['type'] == 'SourceQuery':
