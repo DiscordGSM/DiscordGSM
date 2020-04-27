@@ -1,0 +1,12 @@
+{
+    "name": "discordgsm",
+    "version": "1.5.0",
+    "description": "Monitor your game servers on Discord",
+    "engines": {
+        "node": "14.x"
+    },
+    "scripts": {
+        "build": "npm install -g gamedig"
+    },
+    "license": "MIT"
+}

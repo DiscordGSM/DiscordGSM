@@ -17,7 +17,7 @@ from servers import Servers, ServerCache
 from settings import Settings
 
 # bot static data
-VERSION = '1.4.0'
+VERSION = '1.5.0'
 MIN_REFRESH_RATE = 5
 
 # download servers.json every heroku dyno start
@@ -59,7 +59,7 @@ TOKEN = os.getenv('DGSM_TOKEN', settings['token'])
 ROLE_ID = os.getenv('ROLE_ID', settings['role_id'])
 
 #IMAGE URL Checking
-RIMAGE_URL = os.getenv('IMAGE_URL', settings['image_url'])
+CUSTOM_IMAGE_URL = os.getenv('IMAGE_URL', settings['image_url'])
 
 # set up bot
 bot = commands.Bot(command_prefix=settings['prefix'])
@@ -134,7 +134,6 @@ async def on_ready():
     t.start()
 
 # print servers to discord
-@asyncio.coroutine
 async def print_servers():
     edit_error_count = 0
     next_update_time = 0
@@ -146,11 +145,13 @@ async def print_servers():
             continue
 
         # edit error with some reasons (maybe messages edit limit?), anyway servers refresh will fix this issue
-        if edit_error_count >= 10:
+        if edit_error_count >= 20:
             edit_error_count = 0
 
             # refresh discord servers list
             await refresh_servers_list()
+
+            print(datetime.now().strftime('%Y-%m-%d %H:%M:%S') + ' Message ERROR reached, servers list refreshed')
             continue
 
         if int(datetime.utcnow().timestamp()) >= next_update_time:
@@ -165,13 +166,15 @@ async def print_servers():
             for i, server in zip(range(len(servers)), servers):
                 # load server cache. If the data is the same, don't update the discord message
                 server_cache = ServerCache(server['addr'], server['port'])
-                if not server_cache.has_changed(): continue
+                ## if not server_cache.has_changed(): continue
 
                 try:
                     await messages[i].edit(embed=get_embed(server))
                 except:
                     edit_error_count += 1
                     print(f'Error: message: {messages[i]} fail to edit, message deleted or no permission. Server: {server["addr"]}:{server["port"]}')
+
+            print(datetime.now().strftime('%Y-%m-%d %H:%M:%S') + f' {len(servers)} messages updated')
 
         await asyncio.sleep(1)
 
@@ -227,9 +230,9 @@ def get_embed(server):
 
         if 'image_url' in server:
             image_url = str(server['image_url'])
-        elif RIMAGE_URL != "":
-            temp_image_url = os.getenv('IMAGE_URL', settings['image_url'])
-            image_url = f'{temp_image_url}/{urllib.parse.quote(data["map"])}.jpg'
+        elif CUSTOM_IMAGE_URL != "":
+            custom_image_url = os.getenv('IMAGE_URL', settings['image_url'])
+            image_url = f'{custom_image_url}/{urllib.parse.quote(data["map"])}.jpg'
         else:
             image_url = f'https://github.com/DiscordGSM/Map-Thumbnails/raw/master/{urllib.parse.quote(data["game"])}/{urllib.parse.quote(data["map"])}.jpg'
 

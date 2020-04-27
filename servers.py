@@ -67,7 +67,7 @@ class Servers:
     # save the servers query data to cache/
     def query(self):
         tasks = [self.query_save_cache(server) for server in self.servers]
-        asyncio.wait(tasks, return_when=asyncio.ALL_COMPLETED, timeout=None)
+        asyncio.wait(tasks, return_when=asyncio.ALL_COMPLETED, timeout=15)
     
     def query_save_cache(self, server):
         if server['type'] == 'SourceQuery':
@@ -80,6 +80,7 @@ class Servers:
                 server_cache.save_data(server['game'], result['GamePort'], result['Hostname'], result['Map'], result['MaxPlayers'], result['Players'], result['Bots'], result['Password'] == 0x01)
             else:
                 server_cache.set_status('Offline')
+
         elif server['type'] == 'UT3Query':
             query = UT3Query(str(server['addr']), int(server['port']))
             result = query.getInfo()
@@ -90,7 +91,8 @@ class Servers:
                 server_cache.save_data(server['game'], result['hostport'], result['hostname'], result['map'], result['maxplayers'], result['numplayers'], 0, False)
             else:
                 server_cache.set_status('Offline')
-        elif server['type'] == 'Gamedig':
+
+        elif server['type'] == 'GamedigQuery':
             query = GamedigQuery(str(server['game']), str(server['addr']), int(server['port']))
             result = query.getInfo()
 
@@ -149,10 +151,10 @@ class ServerCache:
 
     def save_data(self, game, gameport, name, map, maxplayers, players, bots, password):
         # save old data
-        old_data = self.get_data()
-        if old_data:
-            with open(f'cache/{self.file_name}-old.json', 'w', encoding='utf8') as file:
-                json.dump(old_data, file, ensure_ascii=False, indent=4)
+        ## old_data = self.get_data()
+        ## if old_data:
+        ##     with open(f'cache/{self.file_name}-old.json', 'w', encoding='utf8') as file:
+        ##         json.dump(old_data, file, ensure_ascii=False, indent=4)
 
         data = {}
 
@@ -172,5 +174,5 @@ class ServerCache:
 
     def has_changed(self):
         # compare old and new data, see any changes, if yes, edit the message
-        return self.get_old_data() != self.get_data() or self.get_old_status() != self.get_status()
-
+        ## return self.get_old_data() != self.get_data() or self.get_old_status() != self.get_status()
+        return True
