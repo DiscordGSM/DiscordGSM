@@ -12,7 +12,7 @@ class GamedigQuery(object):
         try:
             process = subprocess.Popen(
                 ['gamedig', '--type', str(self.game), '--host', str(self.ip), '--port', str(self.port)],
-                stdout=subprocess.PIPE)
+                shell=True, stdout=subprocess.PIPE)
             output = process.stdout.read()
 
             json_reader = json.loads(str(output).replace("b'", "").replace("\\n'", ""))
