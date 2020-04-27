@@ -165,7 +165,7 @@ async def print_servers():
             # edit embed
             for i, server in zip(range(len(servers)), servers):
                 # load server cache. If the data is the same, don't update the discord message
-                server_cache = ServerCache(server['addr'], server['port'])
+                ## server_cache = ServerCache(server['addr'], server['port'])
                 ## if not server_cache.has_changed(): continue
 
                 try:
