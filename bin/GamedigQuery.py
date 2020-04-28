@@ -44,5 +44,5 @@ class GamedigQuery(object):
 
 
 if __name__ == '__main__':
-    gamedigQuery = GamedigQuery("wolfensteinet", "127.0.0.1", 27960)
+    gamedigQuery = GamedigQuery("tf2", "122.128.109.245", 27015)
     print(gamedigQuery.getInfo())
