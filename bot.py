@@ -53,7 +53,7 @@ print('Setting up...')
 settings = Settings.get()
 
 # bot token
-TOKEN = os.getenv('DGSM_TOKEN', settings.get('tokenn', ''))
+TOKEN = os.getenv('DGSM_TOKEN', settings.get('token', ''))
 
 #Role ID
 ROLE_ID = os.getenv('ROLE_ID', settings.get('role_id', ''))
@@ -140,75 +140,83 @@ async def print_servers():
 
     # 1 = display number of servers, 2 = display total players/total maxplayers, 3 = display each server one by one every 10 minutes
     presence_type = settings.get('presence_type', 3)
+    if presence_type <= 1:
+        hints = f'number of servers'
+    elif presence_type == 2:
+        hints = f'total players/total maxplayers'
+    elif presence_type >= 3:
+        hints = f'each server one by one every 10 minutes'
+    print(datetime.now().strftime('%Y-%m-%d %H:%M:%S') + f' Presence update type: {presence_type} | display {hints}')
 
     while True:
-        # update presence
-        if int(datetime.utcnow().timestamp()) >= next_presence_update_time:
-            next_presence_update_time = int(datetime.utcnow().timestamp()) + 10*60
+        # don't continue when servers is refreshing
+        if not is_refresh:
+            # edit error with some reasons (maybe messages edit limit?), anyway servers refresh will fix this issue
+            if edit_message_error_count >= 20:
+                edit_message_error_count = 0
 
+                # refresh discord servers list
+                await refresh_servers_list()
+
+                print(datetime.now().strftime('%Y-%m-%d %H:%M:%S') + ' Message ERROR reached, servers list refreshed')
+                continue
+
+            if int(datetime.utcnow().timestamp()) >= next_message_update_time:
+                # query servers and save cache
+                game_servers.query()
+
+                if current_servers >= len(servers):
+                    current_servers = 0
+
+                # edit embed
+                for i, server in zip(range(len(servers)), servers):
+                    # load server cache. If the data is the same, don't update the discord message
+                    ## server_cache = ServerCache(server['addr'], server['port'])
+                    ## if not server_cache.has_changed(): continue
+
+                    server_cache = ServerCache(server['addr'], server['port'])
+                    data = server_cache.get_data()
+
+                    if data:
+                        total_players += data["players"]
+                        total_maxplayers += data["maxplayers"]
+
+                        if i == current_servers:
+                            players = data["players"]
+                            maxplayers = data["maxplayers"]
+                            server_name = data["name"]
+
+                    try:
+                        await messages[i].edit(embed=get_embed(server))
+                    except:
+                        edit_message_error_count += 1
+                        print(f'Error: message: {messages[i]} fail to edit, message deleted or no permission. Server: {server["addr"]}:{server["port"]}')
+
+                # delay server query
+                delay = int(settings['refreshrate']) if int(settings['refreshrate']) > MIN_REFRESH_RATE else MIN_REFRESH_RATE
+                next_message_update_time = int(datetime.utcnow().timestamp()) + delay
+
+                print(datetime.now().strftime('%Y-%m-%d %H:%M:%S') + f' {len(servers)} messages updated')
+
+        # update presence  
+        if int(datetime.utcnow().timestamp()) >= next_presence_update_time:
             if len(servers) == 0:
                 activity_text = f'Command: {settings["prefix"]}dgsm'
             elif presence_type <= 1:
                 activity_text = f'{len(servers)} game servers'
             elif presence_type == 2:
-                activity_text = f'{total_players}/{total_maxplayers} active players'
+                if total_maxplayers > 0:
+                    activity_text = f'{total_players}/{total_maxplayers} active players'
             elif presence_type >= 3:
-                activity_text = f'{players}/{maxplayers} on {server_name}'
+                if maxplayers > 0:
+                    activity_text = f'{players}/{maxplayers} on {server_name}'
 
-            current_servers += 1
+            if activity_text:
+                current_servers += 1
+                next_presence_update_time = int(datetime.utcnow().timestamp()) + 10*60
 
-            await bot.change_presence(status=discord.Status.online, activity=discord.Activity(name=activity_text, type=3))
-
-        # don't continue when servers is refreshing
-        if is_refresh:
-            await asyncio.sleep(1)
-            continue
-
-        # edit error with some reasons (maybe messages edit limit?), anyway servers refresh will fix this issue
-        if edit_message_error_count >= 20:
-            edit_message_error_count = 0
-
-            # refresh discord servers list
-            await refresh_servers_list()
-
-            print(datetime.now().strftime('%Y-%m-%d %H:%M:%S') + ' Message ERROR reached, servers list refreshed')
-            continue
-
-        if int(datetime.utcnow().timestamp()) >= next_message_update_time:
-            # query servers and save cache
-            game_servers.query()
-
-            if current_servers >= len(servers):
-                current_servers = 0
-
-            # edit embed
-            for i, server in zip(range(len(servers)), servers):
-                # load server cache. If the data is the same, don't update the discord message
-                ## server_cache = ServerCache(server['addr'], server['port'])
-                ## if not server_cache.has_changed(): continue
-
-                server_cache = ServerCache(server['addr'], server['port'])
-                data = server_cache.get_data()
-
-                total_players += int(data["players"])
-                total_maxplayers += int(data["maxplayers"])
-
-                if i == current_servers:
-                    players = int(data["players"])
-                    maxplayers = int(data["maxplayers"])
-                    server_name = data["name"]
-
-                try:
-                    await messages[i].edit(embed=get_embed(server))
-                except:
-                    edit_message_error_count += 1
-                    print(f'Error: message: {messages[i]} fail to edit, message deleted or no permission. Server: {server["addr"]}:{server["port"]}')
-
-            # delay server query
-            delay = int(settings['refreshrate']) if int(settings['refreshrate']) > MIN_REFRESH_RATE else MIN_REFRESH_RATE
-            next_message_update_time = int(datetime.utcnow().timestamp()) + delay
-
-            print(datetime.now().strftime('%Y-%m-%d %H:%M:%S') + f' {len(servers)} messages updated')
+                await bot.change_presence(status=discord.Status.online, activity=discord.Activity(name=activity_text, type=3))
+                print(datetime.now().strftime('%Y-%m-%d %H:%M:%S') + f' Presence updated | {activity_text}')
 
         await asyncio.sleep(1)
 
