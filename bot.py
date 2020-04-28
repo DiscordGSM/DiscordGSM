@@ -53,16 +53,16 @@ print('Setting up...')
 settings = Settings.get()
 
 # bot token
-TOKEN = os.getenv('DGSM_TOKEN', settings['token'])
+TOKEN = os.getenv('DGSM_TOKEN', settings.get('tokenn', ''))
 
 #Role ID
-ROLE_ID = os.getenv('ROLE_ID', settings['role_id'])
+ROLE_ID = os.getenv('ROLE_ID', settings.get('role_id', ''))
 
 #IMAGE URL Checking
-CUSTOM_IMAGE_URL = os.getenv('IMAGE_URL', settings['image_url'])
+CUSTOM_IMAGE_URL = os.getenv('IMAGE_URL', settings.get('image_url', ''))
 
 # set up bot
-bot = commands.Bot(command_prefix=settings['prefix'])
+bot = commands.Bot(command_prefix=settings.get('prefix', '!'))
 
 # query servers and save cache
 print('Pre-Query servers...')
@@ -97,10 +97,6 @@ async def on_ready():
     print(f'Owner ID: {app_info.owner.id} ({app_info.owner.name})')
     print('----------------')
 
-    # set bot presence
-    activity_text = len(servers) == 0 and f'Command: {settings["prefix"]}dgsm' or f'{len(servers)} game servers'
-    await bot.change_presence(status=discord.Status.online, activity=discord.Activity(name=activity_text, type=3))
-
     # get channels store to array
     channels = []
     for server in servers:
@@ -134,18 +130,43 @@ async def on_ready():
 
 # print servers to discord
 async def print_servers():
-    edit_error_count = 0
-    next_update_time = 0
+    next_presence_update_time = 0
+    total_players = total_maxplayers = 0
+    current_servers = players = maxplayers = 0
+    server_name = ''
+
+    edit_message_error_count = 0
+    next_message_update_time = 0
+
+    # 1 = display number of servers, 2 = display total players/total maxplayers, 3 = display each server one by one every 10 minutes
+    presence_type = settings.get('presence_type', 3)
 
     while True:
+        # update presence
+        if int(datetime.utcnow().timestamp()) >= next_presence_update_time:
+            next_presence_update_time = int(datetime.utcnow().timestamp()) + 10*60
+
+            if len(servers) == 0:
+                activity_text = f'Command: {settings["prefix"]}dgsm'
+            elif presence_type <= 1:
+                activity_text = f'{len(servers)} game servers'
+            elif presence_type == 2:
+                activity_text = f'{total_players}/{total_maxplayers} active players'
+            elif presence_type >= 3:
+                activity_text = f'{players}/{maxplayers} on {server_name}'
+
+            current_servers += 1
+
+            await bot.change_presence(status=discord.Status.online, activity=discord.Activity(name=activity_text, type=3))
+
         # don't continue when servers is refreshing
         if is_refresh:
             await asyncio.sleep(1)
             continue
 
         # edit error with some reasons (maybe messages edit limit?), anyway servers refresh will fix this issue
-        if edit_error_count >= 20:
-            edit_error_count = 0
+        if edit_message_error_count >= 20:
+            edit_message_error_count = 0
 
             # refresh discord servers list
             await refresh_servers_list()
@@ -153,9 +174,12 @@ async def print_servers():
             print(datetime.now().strftime('%Y-%m-%d %H:%M:%S') + ' Message ERROR reached, servers list refreshed')
             continue
 
-        if int(datetime.utcnow().timestamp()) >= next_update_time:
+        if int(datetime.utcnow().timestamp()) >= next_message_update_time:
             # query servers and save cache
             game_servers.query()
+
+            if current_servers >= len(servers):
+                current_servers = 0
 
             # edit embed
             for i, server in zip(range(len(servers)), servers):
@@ -163,15 +187,26 @@ async def print_servers():
                 ## server_cache = ServerCache(server['addr'], server['port'])
                 ## if not server_cache.has_changed(): continue
 
+                server_cache = ServerCache(server['addr'], server['port'])
+                data = server_cache.get_data()
+
+                total_players += int(data["players"])
+                total_maxplayers += int(data["maxplayers"])
+
+                if i == current_servers:
+                    players = int(data["players"])
+                    maxplayers = int(data["maxplayers"])
+                    server_name = data["name"]
+
                 try:
                     await messages[i].edit(embed=get_embed(server))
                 except:
-                    edit_error_count += 1
+                    edit_message_error_count += 1
                     print(f'Error: message: {messages[i]} fail to edit, message deleted or no permission. Server: {server["addr"]}:{server["port"]}')
 
             # delay server query
             delay = int(settings['refreshrate']) if int(settings['refreshrate']) > MIN_REFRESH_RATE else MIN_REFRESH_RATE
-            next_update_time = int(datetime.utcnow().timestamp()) + delay
+            next_message_update_time = int(datetime.utcnow().timestamp()) + delay
 
             print(datetime.now().strftime('%Y-%m-%d %H:%M:%S') + f' {len(servers)} messages updated')
 
@@ -229,11 +264,12 @@ def get_embed(server):
 
         if 'image_url' in server:
             image_url = str(server['image_url'])
-        elif CUSTOM_IMAGE_URL != "":
-            custom_image_url = os.getenv('IMAGE_URL', settings['image_url'])
-            image_url = f'{custom_image_url}/{urllib.parse.quote(data["map"])}.jpg'
         else:
-            image_url = f'https://github.com/DiscordGSM/Map-Thumbnails/raw/master/{urllib.parse.quote(data["game"])}/{urllib.parse.quote(data["map"])}.jpg'
+            custom_image_url = os.getenv('IMAGE_URL', settings.get('image_url', ''))
+            if custom_image_url != '':
+                image_url = f'{custom_image_url}/{urllib.parse.quote(data["map"])}.jpg'
+            else:
+                image_url = f'https://github.com/DiscordGSM/Map-Thumbnails/raw/master/{urllib.parse.quote(data["game"])}/{urllib.parse.quote(data["map"])}.jpg'
 
         embed.set_thumbnail(url=image_url)
     else:
@@ -285,10 +321,6 @@ async def refresh_servers_list():
     if is_refresh: return
     is_refresh = True
 
-    # set bot presence
-    activity_text = '... Refreshing...'
-    await bot.change_presence(status=discord.Status.idle, activity=discord.Activity(name=activity_text, type=3))
-
     # remove old messages
     global messages
     for message in messages:
@@ -323,9 +355,6 @@ async def refresh_servers_list():
     for server in servers:
         message = await bot.get_channel(server['channel']).send(embed=get_embed(server))
         messages.append(message)
-
-    activity_text = len(servers) == 0 and 'Command: !dgsm' or f'{len(servers)} game servers'
-    await bot.change_presence(status=discord.Status.online, activity=discord.Activity(name=activity_text, type=3))
 
     # refresh finish
     is_refresh = False

@@ -13,7 +13,7 @@ class GamedigQuery(object):
             process = subprocess.run(
                 ['gamedig', '--type', str(self.game), '--host', str(self.ip), '--port', str(self.port)],
                 stdout=subprocess.PIPE)
-            output = process.stdout.decode("utf-8")
+            output = process.stdout.decode('utf-8')
 
             json_reader = json.loads(str(output).replace("b'", "").replace("\\n'", ""))
 
@@ -44,5 +44,5 @@ class GamedigQuery(object):
 
 
 if __name__ == '__main__':
-    gamedigQuery = GamedigQuery("tf2", "122.128.109.245", 27015)
+    gamedigQuery = GamedigQuery('tf2', '122.128.109.245', 27015)
     print(gamedigQuery.getInfo())
