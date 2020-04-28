@@ -45,7 +45,7 @@ if settings_json_url and settings_json_url.strip():
 # clear cache
 print('Clearing cache...')
 for file in os.listdir('cache'):
-    if file.endswith(".txt") or file.endswith(".json"):
+    if file.endswith('.txt') or file.endswith('.json'):
         os.remove(os.path.join('cache', file))
 
 # get settings
@@ -172,27 +172,32 @@ async def print_servers():
                 updated_count = 0
                 for i, server in zip(range(len(servers)), servers):
                     # load server cache. If the data is the same, don't update the discord message
-                    ## server_cache = ServerCache(server['addr'], server['port'])
-                    ## if not server_cache.has_changed(): continue
 
                     server_cache = ServerCache(server['addr'], server['port'])
                     data = server_cache.get_data()
 
-                    if data:
-                        total_players += data["players"]
-                        total_maxplayers += data["maxplayers"]
+                    if data and server_cache.get_status() == 'Online':
+                        # save total players and total maxplayers
+                        total_players += data['players']
+                        total_maxplayers += data['maxplayers']
 
+                        # save players and maxplayers
                         if i == current_servers:
-                            players = data["players"]
-                            maxplayers = data["maxplayers"]
-                            server_name = data["name"]
+                            players = data['players']
+                            maxplayers = data['maxplayers']
+                            server_name = data['name']
+                    # if the server is fail to query or offline
+                    elif i == current_servers:
+                        current_servers += 1
+                        if current_servers >= len(servers):
+                            current_servers = 0
 
                     try:
                         await messages[i].edit(embed=get_embed(server))
                         updated_count += 1
                     except:
                         edit_message_error_count += 1
-                        print(datetime.now().strftime('%Y-%m-%d %H:%M:%S') + f'ERROR: message {i} fail to edit, message deleted or no permission. Server: {server["addr"]}:{server["port"]}')
+                        print(datetime.now().strftime('%Y-%m-%d %H:%M:%S') + f' ERROR: message {i} fail to edit, message deleted or no permission. Server: {server["addr"]}:{server["port"]}')
 
                 # delay server query
                 delay = int(settings['refreshrate']) if int(settings['refreshrate']) > MIN_REFRESH_RATE else MIN_REFRESH_RATE
@@ -207,11 +212,9 @@ async def print_servers():
             elif presence_type <= 1:
                 activity_text = f'{len(servers)} game servers'
             elif presence_type == 2:
-                if total_maxplayers > 0:
-                    activity_text = f'{total_players}/{total_maxplayers} active players'
+                activity_text = f'{total_players}/{total_maxplayers} active players' if total_maxplayers > 0 else '0 players' 
             elif presence_type >= 3:
-                if maxplayers > 0:
-                    activity_text = f'{players}/{maxplayers} on {server_name}'
+                activity_text = f'{players}/{maxplayers} on {server_name}' if maxplayers > 0 else '0 players'
 
             if activity_text:
                 current_servers += 1
@@ -359,7 +362,7 @@ async def refresh_servers_list():
 
     # set channel permission and purge messages
     tasks = [set_channel_permission_and_purge_messages(channel) for channel in channels]
-    await asyncio.wait(tasks, return_when=asyncio.ALL_COMPLETED, timeout=None)
+    await asyncio.wait(tasks, return_when=asyncio.ALL_COMPLETED, timeout=15)
 
     # send embed
     for server in servers:
@@ -422,7 +425,7 @@ async def _serveradd(ctx, *args):
             # refresh discord servers list
             await refresh_servers_list()
 
-            description=f'Server added successfully'
+            description = f'Server added successfully'
             embed = discord.Embed(title=title, description=description, color=color)
             embed.add_field(name='Type:Game', value=f'{type}:{game}', inline=True)
             embed.add_field(name='Address:Port', value=f'{addr}:{port}', inline=True)
@@ -430,7 +433,7 @@ async def _serveradd(ctx, *args):
             await ctx.send(embed=embed)
             return
 
-    description=f'Usage: {settings["prefix"]}serveradd <type> <game> <addr> <port> <channel>\nRemark: <port> and <channel> should be digit only'
+    description = f'Usage: {settings["prefix"]}serveradd <type> <game> <addr> <port> <channel>\nRemark: <port> and <channel> should be digit only'
     embed = discord.Embed(title=title, description=description, color=color)
     await ctx.send(embed=embed)
 
@@ -449,12 +452,12 @@ async def _serverdel(ctx, *args):
                 # refresh discord servers list
                 await refresh_servers_list()
 
-                description=f'Server deleted successfully. ID: {server_id}'
+                description = f'Server deleted successfully. ID: {server_id}'
                 embed = discord.Embed(title=title, description=description, color=color)
                 await ctx.send(embed=embed)
                 return
 
-    description=f'Usage: {settings["prefix"]}serverdel <id>\nRemark: view id with command {settings["prefix"]}servers'
+    description = f'Usage: {settings["prefix"]}serverdel <id>\nRemark: view id with command {settings["prefix"]}servers'
     embed = discord.Embed(title=title, description=description, color=color)
     await ctx.send(embed=embed)
 
@@ -479,12 +482,12 @@ async def _serverdel(ctx, *args):
         with open('configs/servers.json', 'wb') as file:
             file.write(r.content)
 
-        description=f'File servers.json uploaded'
+        description = f'File servers.json uploaded'
         embed = discord.Embed(title=title, description=description, color=color)
         await ctx.send(embed=embed)
         return
 
-    description=f'Usage: {settings["prefix"]}setserversjson <url>\nRemark: <url> is the servers.json download url'
+    description = f'Usage: {settings["prefix"]}setserversjson <url>\nRemark: <url> is the servers.json download url'
     embed = discord.Embed(title=title, description=description, color=color)
     await ctx.send(embed=embed)
 
@@ -492,7 +495,7 @@ async def _serverdel(ctx, *args):
 @bot.event
 async def on_command_error (ctx,error):
     if isinstance(error, commands.CheckAnyFailure):
-        message=await ctx.send('''You dont have access to this commands!''')
+        message = await ctx.send('''You dont have access to this commands!''')
         await asyncio.sleep(10)
         await message.delete()
 
