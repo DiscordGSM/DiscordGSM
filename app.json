@@ -25,9 +25,6 @@
             "url": "heroku/python"
         },
         {
-            "url": "heroku/nodejs"
-        },
-        {
             "url": "https://github.com/BattlefieldDuck/heroku-buildpack-test"
         }
     ]
