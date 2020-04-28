@@ -25,7 +25,7 @@
             "url": "heroku/python"
         },
         {
-            "url": "https://github.com/BattlefieldDuck/heroku-buildpack-test"
+            "url": "https://github.com/BattlefieldDuck/test"
         }
     ]
 }
