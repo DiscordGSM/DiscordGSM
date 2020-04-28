@@ -130,8 +130,7 @@ async def on_ready():
     print(datetime.now().strftime('%Y-%m-%d %H:%M:%S') + f' Query servers every {delay} seconds')
 
     # start print servers
-    t = Thread(target=await print_servers())
-    t.start()
+    await print_servers()
 
 # print servers to discord
 async def print_servers():
@@ -155,10 +154,6 @@ async def print_servers():
             continue
 
         if int(datetime.utcnow().timestamp()) >= next_update_time:
-            # delay server query
-            delay = int(settings['refreshrate']) if int(settings['refreshrate']) > MIN_REFRESH_RATE else MIN_REFRESH_RATE
-            next_update_time = int(datetime.utcnow().timestamp()) + delay
-
             # query servers and save cache
             game_servers.query()
 
@@ -173,6 +168,10 @@ async def print_servers():
                 except:
                     edit_error_count += 1
                     print(f'Error: message: {messages[i]} fail to edit, message deleted or no permission. Server: {server["addr"]}:{server["port"]}')
+
+            # delay server query
+            delay = int(settings['refreshrate']) if int(settings['refreshrate']) > MIN_REFRESH_RATE else MIN_REFRESH_RATE
+            next_update_time = int(datetime.utcnow().timestamp()) + delay
 
             print(datetime.now().strftime('%Y-%m-%d %H:%M:%S') + f' {len(servers)} messages updated')
 

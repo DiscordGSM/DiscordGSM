@@ -25,7 +25,7 @@
             "url": "https://github.com/heroku/heroku-buildpack-python"
         },
         {
-            "url": "https://github.com/heroku/heroku-buildpack-nodejs"
+            "url": "https://github.com/HashNuke/heroku-buildpack-elixir"
         }
     ]
 }
