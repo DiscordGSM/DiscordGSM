@@ -169,6 +169,7 @@ async def print_servers():
                     current_servers = 0
 
                 # edit embed
+                updated_count = 0
                 for i, server in zip(range(len(servers)), servers):
                     # load server cache. If the data is the same, don't update the discord message
                     ## server_cache = ServerCache(server['addr'], server['port'])
@@ -188,15 +189,16 @@ async def print_servers():
 
                     try:
                         await messages[i].edit(embed=get_embed(server))
+                        updated_count += 1
                     except:
                         edit_message_error_count += 1
-                        print(f'Error: message: {messages[i]} fail to edit, message deleted or no permission. Server: {server["addr"]}:{server["port"]}')
+                        print(datetime.now().strftime('%Y-%m-%d %H:%M:%S') + f'ERROR: message {i} fail to edit, message deleted or no permission. Server: {server["addr"]}:{server["port"]}')
 
                 # delay server query
                 delay = int(settings['refreshrate']) if int(settings['refreshrate']) > MIN_REFRESH_RATE else MIN_REFRESH_RATE
                 next_message_update_time = int(datetime.utcnow().timestamp()) + delay
 
-                print(datetime.now().strftime('%Y-%m-%d %H:%M:%S') + f' {len(servers)} messages updated')
+                print(datetime.now().strftime('%Y-%m-%d %H:%M:%S') + f' {updated_count} messages updated')
 
         # update presence  
         if int(datetime.utcnow().timestamp()) >= next_presence_update_time:
