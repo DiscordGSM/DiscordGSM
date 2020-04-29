@@ -169,7 +169,7 @@ async def print_servers():
                     current_servers = 0
 
                 # edit embed
-                updated_count = 0
+                total_players = total_maxplayers = updated_count = 0
                 for i, server in zip(range(len(servers)), servers):
                     # load server cache. If the data is the same, don't update the discord message
 
@@ -178,8 +178,8 @@ async def print_servers():
 
                     if data and server_cache.get_status() == 'Online':
                         # save total players and total maxplayers
-                        total_players += data['players']
-                        total_maxplayers += data['maxplayers']
+                        total_players += int(data['players'])
+                        total_maxplayers += int(data['maxplayers'])
 
                         # save players and maxplayers
                         if i == current_servers:
