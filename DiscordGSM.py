@@ -242,6 +242,17 @@ class DiscordGSM():
         return self.server_list
 
 
+# download servers.json every heroku dyno start
+servers_json_url = os.getenv('SERVERS_JSON_URL')
+if servers_json_url and servers_json_url.strip():
+    print('Downloading servers.json...')
+    try:
+        r = requests.get(servers_json_url)
+        with open('configs/servers.json', 'wb') as file:
+            file.write(r.content)
+    except:
+        print('Fail to download servers.json on start up')
+
 SETTINGS = Settings.get()
 TOKEN = os.getenv('DGSM_TOKEN', SETTINGS['token'])
 ROLE_ID = os.getenv('ROLE_ID', SETTINGS.get('role_id', '123'))
