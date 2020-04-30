@@ -18,8 +18,8 @@ class DiscordGSM():
     SETTINGS = Settings.get()
     DGSM_PREFIX = os.getenv("DGSM_PREFIX", SETTINGS.get('prefix', '!'))
     REFRESH_RATE = int(os.getenv('REFRESH_RATE', SETTINGS['refreshrate'])) if int(os.getenv('REFRESH_RATE', SETTINGS['refreshrate'])) > 5 else 5
-    PRESENCE_TYPE = os.getenv('PRESENCE_TYPE', SETTINGS.get('presence_type', 3))
-    PRESENCE_RATE = os.getenv('PRESENCE_RATE', SETTINGS.get('presence_rate', 5))
+    PRESENCE_TYPE = int(os.getenv('PRESENCE_TYPE', SETTINGS.get('presence_type', 3)))
+    PRESENCE_RATE = int(os.getenv('PRESENCE_RATE', SETTINGS.get('presence_rate', 5)))
 
     def __init__(self, bot):
         print('\n----------------')
