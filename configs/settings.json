@@ -5,6 +5,7 @@
     "image_url": "",
     "refreshrate": 15,
     "presence_type": 3,
+    "presence_rate": 5,
     "fieldname": {
         "status": "Status",
         "address": "Address",
