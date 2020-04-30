@@ -11,13 +11,24 @@
         },
         "SERVERS_JSON_URL": {
             "description": "servers.json download url (You can set it later)",
-            "value": "",
+            "value": "https://github.com/DiscordGSM/DiscordGSM/raw/master/configs/servers.json",
             "required": false
         },
-        "SETTINGS_JSON_URL": {
-            "description": "settings.json download url (You can set it later)",
-            "value": "",
-            "required": false
+        "DGSM_PREFIX": {
+            "description": "Bot commands prefix (Default: !)",
+            "value": "!"
+        },
+        "REFRESH_RATE": {
+            "description": "Discord embed refresh rate in seconds (Default: 15)",
+            "value": 15
+        },
+        "PRESENCE_TYPE": {
+            "description": "Discord presence style (Default: 3)",
+            "value": 3
+        },
+        "PRESENCE_RATE": {
+            "description": "Discord presence refresh rate in minutes (Default: 5)",
+            "value": 5
         }
     },
     "buildpacks": [

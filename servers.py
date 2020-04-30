@@ -11,7 +11,7 @@ class Servers:
 
     # refresh query server list
     def refresh(self):
-        servers = self.load()
+        servers = self.get()
 
         # get country code from ipinfo.io
         is_edited = False
@@ -33,7 +33,7 @@ class Servers:
         self.servers = servers 
 
     # get servers data
-    def load(self):
+    def get(self):
         with open('configs/servers.json', 'r') as file:
             data = file.read()
 
@@ -46,7 +46,7 @@ class Servers:
         data['addr'], data['port'] = addr, int(port)
         data['channel'] = int(channel)
 
-        servers = self.load()
+        servers = self.get()
         servers.append(data)
 
         with open('configs/servers.json', 'w', encoding='utf8') as file:
@@ -54,7 +54,7 @@ class Servers:
 
     # delete a server by id
     def delete(self, id):
-        servers = self.load()
+        servers = self.get()
         if 0 < int(id) <= len(servers):
             del servers[int(id) - 1]
 
@@ -118,20 +118,7 @@ class ServerCache:
         except:
             return False
 
-    def get_old_status(self):
-        try:
-            with open(f'cache/{self.file_name}-old.txt', 'r', encoding='utf8') as file:
-                return file.read()
-        except:
-            return False
-
     def set_status(self, status):
-        # save old status
-        ## old_status = self.get_status()
-        ## if old_status:
-        ##     with open(f'cache/{self.file_name}-old.txt', 'w', encoding='utf8') as file:
-        ##         file.write(old_status)
-
         with open(f'cache/{self.file_name}.txt', 'w', encoding='utf8') as file:
             file.write(str(status))
 
@@ -142,20 +129,7 @@ class ServerCache:
         except EnvironmentError:
             return False
 
-    def get_old_data(self):
-        try:
-            with open(f'cache/{self.file_name}-old.json', 'r', encoding='utf8') as file:
-                return json.load(file)
-        except EnvironmentError:
-            return False
-
     def save_data(self, game, gameport, name, map, maxplayers, players, bots, password):
-        # save old data
-        ## old_data = self.get_data()
-        ## if old_data:
-        ##     with open(f'cache/{self.file_name}-old.json', 'w', encoding='utf8') as file:
-        ##         json.dump(old_data, file, ensure_ascii=False, indent=4)
-
         data = {}
 
         # save game name, ip address, query port
