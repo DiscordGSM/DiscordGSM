@@ -33,7 +33,7 @@ ROLE_ID = os.getenv('ROLE_ID', SETTINGS.get('role_id', '123'))
 CUSTOM_IMAGE_URL = os.getenv('CUSTOM_IMAGE_URL', SETTINGS.get('image_url', ''))
 REFRESH_RATE = int(os.getenv('REFRESH_RATE', SETTINGS['refreshrate'])) if int(os.getenv('REFRESH_RATE', SETTINGS['refreshrate'])) > 5 else 5
 PRESENCE_TYPE = int(os.getenv('PRESENCE_TYPE', SETTINGS.get('presence_type', 3)))
-PRESENCE_RATE = int(os.getenv('PRESENCE_RATE', SETTINGS.get('presence_rate', 5)))
+PRESENCE_RATE = int(os.getenv('PRESENCE_RATE', SETTINGS.get('presence_rate', 5))) if int(os.getenv('PRESENCE_RATE', SETTINGS.get('presence_rate', 5))) > 1 else 1
 FIELD_STATUS = os.getenv("FIELD_STATUS", SETTINGS["fieldname"]["status"])
 FIELD_ADDRESS = os.getenv("FIELD_ADDRESS", SETTINGS["fieldname"]["address"])
 FIELD_PORT = os.getenv("FIELD_PORT", SETTINGS["fieldname"]["port"])
@@ -190,11 +190,11 @@ class DiscordGSM():
     # 1 = display number of servers, 2 = display total players/total maxplayers, 3 = display each server one by one every 10 minutes
     def print_presense_hint(self):
         if PRESENCE_TYPE <= 1:
-            hints = f'number of servers'
+            hints = 'number of servers'
         elif PRESENCE_TYPE == 2:
-            hints = f'total players/total maxplayers'
+            hints = 'total players/total maxplayers'
         elif PRESENCE_TYPE >= 3:
-            hints = f'each server one by one every 10 minutes'
+            hints = f'each server one by one every {PRESENCE_RATE} minutes'
         self.print_to_console(f'Presence update type: {PRESENCE_TYPE} | Display {hints}')
 
     # get game server discord embed
