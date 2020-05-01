@@ -145,8 +145,3 @@ class ServerCache:
 
         with open(f'cache/{self.file_name}.json', 'w', encoding='utf8') as file:
             json.dump(data, file, ensure_ascii=False, indent=4)
-
-    def has_changed(self):
-        # compare old and new data, see any changes, if yes, edit the message
-        ## return self.get_old_data() != self.get_data() or self.get_old_status() != self.get_status()
-        return True
