@@ -165,9 +165,9 @@ class DiscordGSM():
         for channel in channels:
             try:
                 await bot.get_channel(channel).set_permissions(bot.user, read_messages=True, send_messages=True, reason='Display servers embed')
-                self.print_to_console(f'Set channel: {channel} with permissions: read_messages, send_messages')
+                self.print_to_console(f'Channel: {channel} | Permissions: read_messages, send_messages | Permissions set successfully')
             except:
-                self.print_to_console(f'Missing permission: Manage Roles, Manage Channels')
+                self.print_to_console(f'Channel: {channel} | Permissions: read_messages, send_messages | ERROR: Permissions fail to set')
 
     # remove old discord embed and send new discord embed
     async def refresh_discord_embed(self):
@@ -180,7 +180,7 @@ class DiscordGSM():
         channels = list(set(channels)) # remove duplicated channels
         for channel in channels:
             await bot.get_channel(channel).purge(check=lambda m: m.author==bot.user)
-
+        
         # send new discord embed
         self.messages = [await bot.get_channel(server['channel']).send(embed=self.get_embed(server)) for server in self.server_list]
 
@@ -269,16 +269,14 @@ class DiscordGSM():
 
 bot = commands.Bot(command_prefix=DGSM_PREFIX)
 
-# command: servers
-# list all the servers in configs/servers.json
-@bot.command(name='dgsm', aliases=['discordgsm'])
+# command: dgsm
+# display dgsm informations
+@bot.command(name='dgsm', aliases=['discordgsm'], brief='Display DiscordGSM\'s informations')
 @commands.check_any(commands.has_role(ROLE_ID), commands.is_owner())
 async def _dgsm(ctx):
     title = f'Command: {DGSM_PREFIX}dgsm'
     description = f'Thanks for using Discord Game Server Monitor ([DiscordGSM](https://github.com/DiscordGSM/DiscordGSM))\n'
     description += f'\nUseful commands:\n{DGSM_PREFIX}servers - Display the server list'
-    description += f'\n{DGSM_PREFIX}serveradd - Add a server'
-    description += f'\n{DGSM_PREFIX}serverdel - Delete a server'
     description += f'\n{DGSM_PREFIX}serversrefresh - Refresh the server list'
     description += f'\n{DGSM_PREFIX}getserversjson - get servers.json file'
     description += f'\n{DGSM_PREFIX}setserversjson - set servers.json file'
@@ -288,9 +286,9 @@ async def _dgsm(ctx):
     embed.add_field(name='Github', value='https://github.com/DiscordGSM/DiscordGSM', inline=True)
     await ctx.send(embed=embed)
 
-# command: servers
-# list all the servers in configs/servers.json
-@bot.command(name='serversrefresh')
+# command: serversrefresh
+# refresh the server list
+@bot.command(name='serversrefresh', brief='Refresh the server list')
 @commands.check_any(commands.has_role(ROLE_ID), commands.is_owner())
 async def _serversrefresh(ctx):
     # refresh discord servers list
@@ -305,7 +303,7 @@ async def _serversrefresh(ctx):
 
 # command: servers
 # list all the servers in configs/servers.json
-@bot.command(name='servers')
+@bot.command(name='servers', brief='List all the servers in servers.json')
 @commands.check_any(commands.has_role(ROLE_ID), commands.is_owner())
 async def _servers(ctx):
     title = f'Command: {DGSM_PREFIX}servers'
@@ -326,14 +324,14 @@ async def _servers(ctx):
 
 # command: getserversjson
 # get configs/servers.json
-@bot.command(name='getserversjson')
+@bot.command(name='getserversjson', brief='Get servers.json file')
 @commands.check_any(commands.has_role(ROLE_ID), commands.is_owner())
 async def _getserversjson(ctx):
     await ctx.send(file=discord.File('configs/servers.json'))
 
 # command: setserversjson
 # set configs/servers.json
-@bot.command(name='setserversjson')
+@bot.command(name='setserversjson', brief='Set servers.json file')
 @commands.check_any(commands.has_role(ROLE_ID), commands.is_owner())
 async def _setserversjson(ctx, *args):
     title = f'Command: {DGSM_PREFIX}setserversjson'
@@ -354,7 +352,7 @@ async def _setserversjson(ctx, *args):
     embed = discord.Embed(title=title, description=description, color=color)
     await ctx.send(embed=embed)
 
-#Error Handling Missing Role
+# error handling on Missing Role
 @bot.event
 async def on_command_error(ctx, error):
     if isinstance(error, commands.CheckAnyFailure):
