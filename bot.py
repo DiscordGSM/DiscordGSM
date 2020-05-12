@@ -111,9 +111,12 @@ class DiscordGSM():
     async def print_servers(self):
         if self.message_error_count < 20:
             updated_count = 0
+            skip_message = 0
             for i in range(len(self.server_list)):
                 try:
-                    await self.messages[i].edit(embed=self.get_embed(self.server_list[i]))
+                    if ('frontMessage' in self.server_list[i]):
+                        skip_message += 1
+                    await self.messages[i + skip_message].edit(embed=self.get_embed(self.server_list[i]))
                     updated_count += 1
                 except:
                     self.message_error_count += 1
@@ -182,7 +185,11 @@ class DiscordGSM():
             await bot.get_channel(channel).purge(check=lambda m: m.author==bot.user)
         
         # send new discord embed
-        self.messages = [await bot.get_channel(server['channel']).send(embed=self.get_embed(server)) for server in self.server_list]
+        self.messages = []
+        for server in self.server_list:
+            if ('frontMessage' in server and server['frontMessage'] != ''):
+                self.messages.append(await bot.get_channel(server['channel']).send(server['frontMessage']))
+            self.messages.append(await bot.get_channel(server['channel']).send(embed=self.get_embed(server)))
 
     def print_to_console(self, value):
         print(datetime.now().strftime('%Y-%m-%d %H:%M:%S: ') + value)
