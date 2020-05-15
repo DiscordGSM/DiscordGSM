@@ -25,7 +25,7 @@ if servers_json_url and servers_json_url.strip():
         print('Fail to download servers.json on start up')
 
 # env values
-VERSION = '1.6.0'
+VERSION = '1.7.0'
 SETTINGS = Settings.get()
 DGSM_TOKEN = os.getenv('DGSM_TOKEN', SETTINGS['token'])
 DGSM_PREFIX = os.getenv("DGSM_PREFIX", SETTINGS.get('prefix', '!'))
@@ -96,11 +96,6 @@ class DiscordGSM():
     # pre-query servers before ready
     @query_servers.before_loop
     async def before_query_servers(self):
-        self.print_to_console('Clearing cache...')
-        for file in os.listdir('cache'):
-            if file.endswith('.txt') or file.endswith('.json'):
-                os.remove(os.path.join('cache', file))
-
         self.print_to_console('Pre-Query servers...')
         self.servers.query()
         await self.bot.wait_until_ready()
@@ -111,12 +106,9 @@ class DiscordGSM():
     async def print_servers(self):
         if self.message_error_count < 20:
             updated_count = 0
-            skip_message = 0
             for i in range(len(self.server_list)):
                 try:
-                    if ('frontMessage' in self.server_list[i]):
-                        skip_message += 1
-                    await self.messages[i + skip_message].edit(embed=self.get_embed(self.server_list[i]))
+                    await self.messages[i].edit(content=('frontMessage' in self.server_list[i] and self.server_list[i]['frontMessage'].strip()) and self.server_list[i]['frontMessage'] or None, embed=self.get_embed(self.server_list[i]))
                     updated_count += 1
                 except:
                     self.message_error_count += 1
@@ -185,12 +177,8 @@ class DiscordGSM():
             await bot.get_channel(channel).purge(check=lambda m: m.author==bot.user)
         
         # send new discord embed
-        self.messages = []
-        for server in self.server_list:
-            if ('frontMessage' in server and server['frontMessage'] != ''):
-                self.messages.append(await bot.get_channel(server['channel']).send(server['frontMessage']))
-            self.messages.append(await bot.get_channel(server['channel']).send(embed=self.get_embed(server)))
-
+        self.messages = [await bot.get_channel(s['channel']).send(content=('frontMessage' in s and s['frontMessage'].strip()) and s['frontMessage'] or None, embed=self.get_embed(s)) for s in self.server_list]
+    
     def print_to_console(self, value):
         print(datetime.now().strftime('%Y-%m-%d %H:%M:%S: ') + value)
 
