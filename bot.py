@@ -25,7 +25,7 @@ if servers_json_url and servers_json_url.strip():
         print('Fail to download servers.json on start up')
 
 # env values
-VERSION = '1.7.0'
+VERSION = '1.7.1'
 SETTINGS = Settings.get()
 DGSM_TOKEN = os.getenv('DGSM_TOKEN', SETTINGS['token'])
 DGSM_PREFIX = os.getenv("DGSM_PREFIX", SETTINGS.get('prefix', '!'))
