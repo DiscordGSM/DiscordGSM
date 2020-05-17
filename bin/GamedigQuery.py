@@ -1,6 +1,7 @@
 # original author: BrandonFL
 # require gamedig: npm install -g gamedig
 
+import platform
 import subprocess
 import json
 
@@ -12,7 +13,7 @@ class GamedigQuery(object):
         try:
             process = subprocess.run(
                 ['gamedig', '--type', str(self.game), '--host', str(self.ip), '--port', str(self.port)],
-                stdout=subprocess.PIPE, shell=True)
+                stdout=subprocess.PIPE, shell=platform.system() == 'Windows' and True or False)
             output = process.stdout.decode('utf-8')
 
             json_reader = json.loads(str(output).replace("b'", "").replace("\\n'", ""))
