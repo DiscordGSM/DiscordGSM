@@ -14,7 +14,7 @@ class GamedigQuery(object):
             process = subprocess.run(
                 ['gamedig', '--type', str(self.game), '--host', str(self.ip), '--port', str(self.port)],
                 stdout=subprocess.PIPE, shell=platform.system() == 'Windows' and True or False)
-            output = process.stdout.decode('utf-8')
+            output = process.stdout.decode('unicode_escape')
 
             json_reader = json.loads(str(output).replace("b'", "").replace("\\n'", ""))
 
@@ -45,5 +45,5 @@ class GamedigQuery(object):
 
 
 if __name__ == '__main__':
-    gamedigQuery = GamedigQuery('tf2', '122.128.109.245', 27015)
+    gamedigQuery = GamedigQuery('minecraft', '145.239.205.107', 25565)
     print(gamedigQuery.getInfo())

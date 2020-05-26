@@ -5,6 +5,7 @@ import socket
 import time
 import struct
 import sys
+import re
 
 class UT3Query(object):
     def __init__(self, addr, port=19132, timeout=5.0):
@@ -44,12 +45,17 @@ class UT3Query(object):
         except:
             return False
 
-        response = response[16:].decode('utf8').split('\x00\x00\x01player_\x00\x00')
-        # print(response) # useful output
-        kv = response[0].split('\x00')
+        response = response[16:].decode('unicode_escape').split('\x00\x00\x01player_\x00\x00')
+        response = re.sub(r'§.', '', response[0]).replace('\n', ' ') # remove color and next line
+        #print(response) # useful output
+        kv = response.split('\x00')
         
         result = {}
         for i in range(0, len(kv), 2):
             result[kv[i]] = kv[i+1]
 
         return result
+
+if __name__ == '__main__':
+    ut3Query = UT3Query('145.239.205.107', 25565)
+    print(ut3Query.getInfo())
