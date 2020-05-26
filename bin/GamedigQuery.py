@@ -4,6 +4,7 @@
 import platform
 import subprocess
 import json
+import re
 
 class GamedigQuery(object):
     def __init__(self, game, addr, port=27015):
@@ -14,7 +15,7 @@ class GamedigQuery(object):
             process = subprocess.run(
                 ['gamedig', '--type', str(self.game), '--host', str(self.ip), '--port', str(self.port)],
                 stdout=subprocess.PIPE, shell=platform.system() == 'Windows' and True or False)
-            output = process.stdout.decode('unicode_escape')
+            output = process.stdout.decode('utf8')
 
             json_reader = json.loads(str(output).replace("b'", "").replace("\\n'", ""))
 
@@ -25,6 +26,9 @@ class GamedigQuery(object):
                 result['_engine_'] = 'Gamedig'
 
                 result['Hostname'] = json_reader['name']
+                if str(self.game) == 'fivem': # remove fivem server color code
+                    result['Hostname'] = re.sub(r'\^[0-9]', '', result['Hostname'])
+
                 result['Map'] = json_reader['map']
                 result['Players'] = len(json_reader['players'])
                 result['MaxPlayers'] = int(json_reader['maxplayers'])
@@ -45,5 +49,5 @@ class GamedigQuery(object):
 
 
 if __name__ == '__main__':
-    gamedigQuery = GamedigQuery('minecraft', '145.239.205.107', 25565)
+    gamedigQuery = GamedigQuery('fivem', '54.37.244.192', 30120)
     print(gamedigQuery.getInfo())

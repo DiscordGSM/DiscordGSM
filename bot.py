@@ -25,7 +25,7 @@ if servers_json_url and servers_json_url.strip():
         print('Fail to download servers.json on start up')
 
 # env values
-VERSION = '1.7.2'
+VERSION = '1.7.3'
 SETTINGS = Settings.get()
 DGSM_TOKEN = os.getenv('DGSM_TOKEN', SETTINGS['token'])
 DGSM_PREFIX = os.getenv("DGSM_PREFIX", SETTINGS.get('prefix', '!'))
@@ -216,7 +216,7 @@ class DiscordGSM():
             else:
                 color = discord.Color.from_rgb(32, 34, 37) # dark
 
-            title = (data['password'] and ':lock: ' or '') + data["name"]
+            title = (data['password'] and ':lock: ' or '') + f'`{data["name"]}`'
             custom = ('custom' in server) and server['custom'] or None
             if custom and custom.strip():
                 embed = discord.Embed(title=title, description=custom, color=color)
