@@ -4,6 +4,10 @@ import urllib
 import asyncio
 from bin import *
 
+def fire_and_forget(f):
+    def wrapped(*args, **kwargs): return asyncio.get_event_loop().run_in_executor(None, f, *args, *kwargs)
+    return wrapped
+
 # load servers.json -> get all servers type, addr, port
 class Servers:
     def __init__(self):
@@ -64,11 +68,15 @@ class Servers:
             return True
         return False
 
-    # save the servers query data to cache/
     def query(self):
-        tasks = [self.query_save_cache(server) for server in self.servers]
-        asyncio.wait(tasks, return_when=asyncio.ALL_COMPLETED, timeout=15)
+        for server in self.servers:
+            try:
+                self.query_save_cache(server)
+            except:
+                pass
+        return len(self.servers)
 
+    @fire_and_forget
     def query_save_cache(self, server):
         if server['type'] == 'SourceQuery':
             query = SourceQuery(str(server['addr']), int(server['port']))

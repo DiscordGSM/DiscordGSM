@@ -25,7 +25,7 @@ if servers_json_url and servers_json_url.strip():
         print('Fail to download servers.json on start up')
 
 # env values
-VERSION = '1.7.3'
+VERSION = '1.7.4'
 SETTINGS = Settings.get()
 DGSM_TOKEN = os.getenv('DGSM_TOKEN', SETTINGS['token'])
 DGSM_PREFIX = os.getenv("DGSM_PREFIX", SETTINGS.get('prefix', '!'))
@@ -91,13 +91,15 @@ class DiscordGSM():
     # query the servers
     @tasks.loop(seconds=REFRESH_RATE)
     async def query_servers(self):
-        self.servers.query()
+        server_count = self.servers.query()
+        self.print_to_console(f'{server_count} servers queried')
 
     # pre-query servers before ready
     @query_servers.before_loop
     async def before_query_servers(self):
         self.print_to_console('Pre-Query servers...')
-        self.servers.query()
+        server_count = self.servers.query()
+        self.print_to_console(f'{server_count} servers queried')
         await self.bot.wait_until_ready()
         await self.on_ready()
     
