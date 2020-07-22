@@ -25,7 +25,7 @@ if servers_json_url and servers_json_url.strip():
         print('Fail to download servers.json on start up')
 
 # env values
-VERSION = '1.7.4'
+VERSION = '1.7.5'
 SETTINGS = Settings.get()
 DGSM_TOKEN = os.getenv('DGSM_TOKEN', SETTINGS['token'])
 DGSM_PREFIX = os.getenv("DGSM_PREFIX", SETTINGS.get('prefix', '!'))
@@ -66,7 +66,8 @@ class DiscordGSM():
 
     async def on_ready(self):
         # set username and avatar
-        with open('images/discordgsm.png', 'rb') as file:
+        icon_file_name = 'images/discordgsm' + ('DGSM_TOKEN' in os.environ and '-heroku' or '') + '.png'
+        with open(icon_file_name, 'rb') as file:
             try:
                 await bot.user.edit(username='DiscordGSM', avatar=file.read())
             except:
