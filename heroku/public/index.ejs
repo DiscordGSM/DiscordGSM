@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width,initial-scale=1.0">
+
+    <title>DiscordGSM - Heroku Version</title>
+    <meta name="title" content="DiscordGSM - Heroku Version">
+    <meta name="description" content="📺 Monitor your game servers on Discord and tracks the live data of your game servers. Also support one-click deployment to Heroku, self-hosted.">
+
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+    <link rel="manifest" href="/site.webmanifest">
+    <link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5">
+    <meta name="msapplication-TileColor" content="#603cba">
+    <meta name="theme-color" content="#ffffff">
+
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/5.0.0-alpha1/css/bootstrap.min.css" integrity="sha384-r4NyP46KrjDleawBgD5tp8Y7UzmLA05oM1iAEQ17CSuDqnUK2+k9luXQOfXJCJ4I" crossorigin="anonymous">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/assets/style.css">
+  </head>
+  <body>
+    <a class="btn btn-info" target="_blank" href="<%= inviteLink %>" role="button" rel="noopener">Invite to server</a>
+
+    <div class="message">
+      <img src="android-chrome-512x512.png" width="60" alt="DiscordGSM Logo">
+      <div class="message__title">DiscordGSM v<%= version %> Deployed</div>
+
+      <table class="table table-hover table-dark">
+        <thead>
+          <tr>
+            <th scope="col">Config Vars</th>
+            <th scope="col">Valid</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td scope="row">SERVERS_JSON</td>
+            <td><%= SERVERS_JSON %></td>
+          </tr>
+          <tr>
+            <td scope="row">DGSM_TOKEN</td>
+            <td><%= DGSM_TOKEN %></td>
+          </tr>
+        </tbody>
+      </table>
+
+    </div>
+
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/5.0.0-alpha1/js/bootstrap.min.js" integrity="sha384-oesi62hOLfzrys4LxRF63OJCXdXDipiYWBnvTl9Y9/TRlw5xlKIEHpNyvvDShgf/" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@widgetbot/crate@3" async defer>new Crate({server:'680159496584429582',channel:'713053208259461130'})</script>
+  </body>
+</html>

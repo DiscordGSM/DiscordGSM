@@ -6,7 +6,12 @@
         "node": "14.x"
     },
     "scripts": {
-        "build": "npm install -g gamedig"
+        "build": "npm install -g gamedig",
+        "start": "node heroku/app.js"
     },
-    "license": "MIT"
+    "license": "MIT",
+    "dependencies": {
+        "ejs": "^3.1.5",
+        "express": "^4.17.1"
+    }
 }

@@ -13,19 +13,14 @@ from bin import *
 from servers import Servers, ServerCache
 from settings import Settings
 
-# download servers.json every heroku dyno start
-servers_json_url = os.getenv('SERVERS_JSON_URL')
-if servers_json_url and servers_json_url.strip():
-    print('Downloading servers.json...')
-    try:
-        r = requests.get(servers_json_url)
-        with open('configs/servers.json', 'wb') as file:
-            file.write(r.content)
-    except:
-        print('Fail to download servers.json on start up')
+# [HEROKU] get and load servers json from SERVERS_JSON env directly
+servers_json = os.getenv('SERVERS_JSON')
+if servers_json and servers_json.strip():
+    with open('configs/servers.json', 'wb') as file:
+        file.write(servers_json)
 
 # env values
-VERSION = '1.7.5'
+VERSION = '1.8.0'
 SETTINGS = Settings.get()
 DGSM_TOKEN = os.getenv('DGSM_TOKEN', SETTINGS['token'])
 DGSM_PREFIX = os.getenv("DGSM_PREFIX", SETTINGS.get('prefix', '!'))
@@ -149,10 +144,12 @@ class DiscordGSM():
             data = server_cache.get_data()
             if data and server_cache.get_status() == 'Online':
                 activity_text = f'{data["players"]}/{data["maxplayers"]} on {data["name"]}' if int(data["maxplayers"]) > 0 else '0 players'
+            else:
+                activity_text = None
 
             self.current_display_server += 1
 
-        if activity_text:
+        if activity_text != None:
             await bot.change_presence(status=discord.Status.online, activity=discord.Activity(name=activity_text, type=3))
             self.print_to_console(f'Discord presence updated | {activity_text}')
 

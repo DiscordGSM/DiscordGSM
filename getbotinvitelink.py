@@ -10,10 +10,10 @@ TOKEN = os.getenv('DGSM_TOKEN', settings['token'])
 
 @bot.event
 async def on_ready():
-    print('--------------------')
-    print(f'DiscordGSM invite link: https://discordapp.com/api/oauth2/authorize?client_id={bot.user.id}&permissions=268954704&scope=bot')
-    print('--------------------')
-    
+    print(f'https://discordapp.com/api/oauth2/authorize?client_id={bot.user.id}&permissions=268954704&scope=bot')
     await bot.close()
 
-bot.run(TOKEN)
+try:
+    bot.run(TOKEN)
+except:
+    pass

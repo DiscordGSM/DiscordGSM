@@ -1,1 +1,1 @@
-DiscordGSM: python3 bot.py
+npm start & python3 bot.py
