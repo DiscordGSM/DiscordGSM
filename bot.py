@@ -2,6 +2,7 @@ import os
 import urllib
 import asyncio
 import requests
+import subprocess
 from datetime import datetime
 
 # discord
@@ -18,6 +19,12 @@ servers_json = os.getenv('SERVERS_JSON')
 if servers_json and servers_json.strip():
     with open('configs/servers.json', 'w') as file:
         file.write(servers_json)
+
+# [HEROKU] Check bot token valid before start
+if 'DGSM_TOKEN' in os.environ:
+    invite_link = subprocess.run(['python3', 'getbotinvitelink.py'], stdout=subprocess.PIPE, shell=False).stdout.decode('utf8')
+    if 'https://discordapp.com/api/oauth2/authorize?client_id=' not in invite_link:
+        raise SystemExit('Improper token has been passed.')
 
 # env values
 VERSION = '1.8.0'
@@ -357,4 +364,5 @@ async def on_command_error(ctx, error):
 
 discordgsm = DiscordGSM(bot)
 discordgsm.start()
+
 bot.run(DGSM_TOKEN)
