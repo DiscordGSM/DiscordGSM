@@ -16,7 +16,7 @@ from settings import Settings
 # [HEROKU] get and load servers json from SERVERS_JSON env directly
 servers_json = os.getenv('SERVERS_JSON')
 if servers_json and servers_json.strip():
-    with open('configs/servers.json', 'wb') as file:
+    with open('configs/servers.json', 'w') as file:
         file.write(servers_json)
 
 # env values
