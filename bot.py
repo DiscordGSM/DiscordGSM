@@ -1,4 +1,5 @@
 import os
+import sys
 import urllib
 import asyncio
 import requests
@@ -24,7 +25,8 @@ if servers_json and servers_json.strip():
 if 'DGSM_TOKEN' in os.environ:
     invite_link = subprocess.run(['python3', 'getbotinvitelink.py'], stdout=subprocess.PIPE, shell=False).stdout.decode('utf8')
     if 'https://discordapp.com/api/oauth2/authorize?client_id=' not in invite_link:
-        raise SystemExit('Improper token has been passed.')
+        print('Improper token has been passed.')
+        sys.exit(0)
 
 # env values
 VERSION = '1.8.0'
