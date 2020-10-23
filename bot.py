@@ -1,4 +1,5 @@
 import os
+import time
 import urllib
 import asyncio
 import requests
@@ -364,6 +365,9 @@ if 'DGSM_TOKEN' in os.environ:
     invite_link = subprocess.run(['python3', 'getbotinvitelink.py'], stdout=subprocess.PIPE, shell=False).stdout.decode('utf8')
     if 'https://discordapp.com/api/oauth2/authorize?client_id=' in invite_link:
         bot.run(DGSM_TOKEN)
+    else:
+        while True:
+            time.sleep(1)
 # self hosted
 else:
     bot.run(DGSM_TOKEN)
