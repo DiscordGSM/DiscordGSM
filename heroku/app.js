@@ -11,11 +11,11 @@ const app = express()
 app.set('view engine', 'ejs');
 app.use(express.json())
 app.use(express.static(path.join(__dirname, '/public')))
-app.use('/', (req, res) => {
+app.use('/', (_, res) => {
     // Check servers.json valid
     try {
-        var JsonValid = JSON.parse(serversJson) || true
-    } catch (e) {
+        var JsonValid = JSON.parse(serversJson) | true
+    } catch {
         var JsonValid = false
     }
 
@@ -28,5 +28,11 @@ app.use('/', (req, res) => {
     });
 })
 app.listen(heroku ? process.env.PORT : debugPort)
+
+if (process.env.HEROKU_APP_NAME != null) {
+    setInterval(() => http.get(`https://${process.env.HEROKU_APP_NAME}.herokuapp.com`), 300000)
+} else {
+    console.log('ERROR: HEROKU_APP_NAME Config Var not found')
+}
 
 console.log('DiscordGSM - Heroku Version started successfully.' + (heroku ? '': ` Local: http://localhost:${debugPort}`))

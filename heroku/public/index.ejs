@@ -22,9 +22,11 @@
     <link rel="stylesheet" href="/assets/style.css">
   </head>
   <body>
-    <a class="btn btn-info" target="_blank" href="<%= inviteLink %>" role="button" rel="noopener">Invite to server</a>
+    <div id="particles-js"></div>
 
     <div class="message">
+      <a class="btn btn-info" target="_blank" href="<%= inviteLink %>" role="button" rel="noopener">Invite to server</a>
+
       <img src="android-chrome-512x512.png" width="60" alt="DiscordGSM Logo">
       <div class="message__title">DiscordGSM v<%= version %> Deployed</div>
 
@@ -46,10 +48,11 @@
           </tr>
         </tbody>
       </table>
-
     </div>
 
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/5.0.0-alpha1/js/bootstrap.min.js" integrity="sha384-oesi62hOLfzrys4LxRF63OJCXdXDipiYWBnvTl9Y9/TRlw5xlKIEHpNyvvDShgf/" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/@widgetbot/crate@3" async defer>new Crate({server:'680159496584429582',channel:'713053208259461130'})</script>
+    <script src="https://cdn.jsdelivr.net/npm/particles.js@2.0.0/particles.min.js"></script>
+    <script>particlesJS.load('particles-js', 'particlesjs-config.json')</script>
   </body>
 </html>

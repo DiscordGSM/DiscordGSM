@@ -5,6 +5,10 @@
     "logo": "https://github.com/DiscordGSM/DiscordGSM/raw/master/images/discordgsm.png",
     "keywords": ["discordgsm", "query", "gameserver", "gameservers", "monitor", "dgsm", "game-servers", "discord", "gaming", "game"],
     "env": {
+        "HEROKU_APP_NAME": {
+            "description": "Heroku app name - same as the app name set above",
+            "value": ""
+        },
         "DGSM_PREFIX": {
             "description": "Bot commands prefix (Default: !)",
             "value": "!"
@@ -26,7 +30,7 @@
             "value": "15"
         },
         "SERVERS_JSON": {
-            "description": "Paste your servers.json data here. (You can edit later) Wiki: https://github.com/DiscordGSM/DiscordGSM/wiki/Edit-servers.json",
+            "description": "servers.json data. (Default: []) Wiki: https://github.com/DiscordGSM/DiscordGSM/wiki/Edit-servers.json",
             "value": "[]"
         }
     },
