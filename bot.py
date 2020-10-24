@@ -29,7 +29,7 @@ if 'DGSM_TOKEN' in os.environ:
             time.sleep(1)
     with open('configs/servers.json', 'r') as file:
         try:
-            json.loads(file.read())
+            Servers().get()
         except Exception as e:
             print(e)
             while True:
