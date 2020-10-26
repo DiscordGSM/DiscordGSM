@@ -1,6 +1,7 @@
 const debugPort = 7999
 const heroku = process.env.PORT != null
 const express = require('express')
+const http = require('http')
 const path = require('path')
 const fs = require('fs')
 const version = new RegExp("VERSION.{0,}=.{0,}'(.*)'").exec(fs.readFileSync(path.join(__dirname, '/../bot.py')))[1] // Get DiscordGSM verison from bot.py
@@ -30,7 +31,7 @@ app.use('/', (_, res) => {
 app.listen(heroku ? process.env.PORT : debugPort)
 
 if (process.env.HEROKU_APP_NAME != null) {
-    setInterval(() => http.get(`https://${process.env.HEROKU_APP_NAME}.herokuapp.com`), 300000)
+    setInterval(() => http.get(`https://${process.env.HEROKU_APP_NAME}.herokuapp.com?t=${+new Date()}`), 300000)
 } else {
     console.log('ERROR: HEROKU_APP_NAME Config Var not found')
 }
