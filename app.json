@@ -30,7 +30,7 @@
             "value": "15"
         },
         "SERVERS_JSON": {
-            "description": "servers.json data. (Default: []) Wiki: https://github.com/DiscordGSM/DiscordGSM/wiki/Edit-servers.json",
+            "description": "servers.json data (Default: []) Wiki: https://github.com/DiscordGSM/DiscordGSM/wiki/Edit-servers.json",
             "value": "[]"
         }
     },
