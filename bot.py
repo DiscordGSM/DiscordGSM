@@ -229,6 +229,13 @@ class DiscordGSM():
                     color = discord.Color.from_rgb(250, 166, 26) # yellew
                 else:
                     color = discord.Color.from_rgb(67, 181, 129) # green
+                    try:
+                        if 'color' in server:
+                            h = server['color'].lstrip('#')
+                            rgb = tuple(int(h[i:i+2], 16) for i in (0, 2, 4))
+                            color = discord.Color.from_rgb(rgb[0], rgb[1], rgb[2])
+                    except Exception as e:
+                        self.print_to_console(e)
             else:
                 color = discord.Color.from_rgb(32, 34, 37) # dark
 
@@ -271,7 +278,7 @@ class DiscordGSM():
             embed = discord.Embed(title='ERROR', description=f'{FIELD_STATUS}: :warning: **Fail to query**', color=color)
             embed.add_field(name=f'{FIELD_ADDRESS}:{FIELD_PORT}', value=f'{server["addr"]}:{server["port"]}', inline=True)
         
-        embed.set_footer(text=f'DiscordGSM v{VERSION} | Game Server Monitor | Last update: ' + datetime.now().strftime('%a, %Y-%m-%d %I:%M:%S%p'), icon_url='https://github.com/DiscordGSM/DiscordGSM/raw/master/images/discordgsm.png')
+        embed.set_footer(text=f'DiscordGSM v{VERSION} | 📺Game Server Monitor | Last update: ' + datetime.now().strftime('%a, %Y-%m-%d %I:%M:%S%p'), icon_url='https://github.com/DiscordGSM/DiscordGSM/raw/master/images/discordgsm.png')
         
         return embed
 
