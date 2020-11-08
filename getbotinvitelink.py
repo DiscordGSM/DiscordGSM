@@ -10,7 +10,7 @@ TOKEN = os.getenv('DGSM_TOKEN', settings['token'])
 
 @bot.event
 async def on_ready():
-    print(f'https://discordapp.com/api/oauth2/authorize?client_id={bot.user.id}&permissions=268954704&scope=bot')
+    print(f'https://discord.com/api/oauth2/authorize?client_id={bot.user.id}&permissions=268954704&scope=bot')
     await bot.close()
 
 try:

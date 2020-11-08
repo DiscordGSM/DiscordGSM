@@ -25,7 +25,7 @@ app.use('/', (_, res) => {
         version: version,
         inviteLink: inviteLink,
         SERVERS_JSON: JsonValid ? '✔️' : '❌',
-        DGSM_TOKEN: inviteLink.includes('https://discordapp.com/api/oauth2/authorize?client_id=') ? '✔️' : '❌',
+        DGSM_TOKEN: inviteLink.includes('https://discord.com/api/oauth2/authorize?client_id=') ? '✔️' : '❌',
     })
 })
 app.listen(heroku ? process.env.PORT : debugPort)
