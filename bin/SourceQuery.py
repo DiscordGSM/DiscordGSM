@@ -158,7 +158,7 @@ class SourceQuery(object):
 
 	def getString(self, data):
 		s = data[0:].split(b'\x00')[0]
-		return str(s, encoding='utf-8'), data[len(s) + 1:]
+		return str(s, encoding='utf-8', errors='ignore'), data[len(s) + 1:]
 
 # Debug
 if __name__ == '__main__':
