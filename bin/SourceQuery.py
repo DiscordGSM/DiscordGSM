@@ -29,11 +29,17 @@ class SourceQuery(object):
 		except:
 			return False
 
-		data = data[4:]
+		header, data = self.getByte(data[4:])
+
+		# (12/8/2021) Changes to server browser packets in latest Steam client
+        # https://steamcommunity.com/discussions/forum/14/2974028351344359625/
+		if chr(header) == 'A':
+			self.sock.send(A2S_INFO + data)
+			data = self.sock.recv(4096)
+			header, data = self.getByte(data[4:])
 
 		result = {}
 
-		header, data = self.getByte(data)
 		if chr(header) == S2A_INFO_SOURCE:
 			result['_engine_'] = 'Source'
 
