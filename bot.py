@@ -374,9 +374,7 @@ async def _setserversjson(ctx, *args):
 @bot.event
 async def on_command_error(ctx, error):
     if isinstance(error, commands.CheckAnyFailure):
-        message = await ctx.send('''You dont have access to this commands!''')
-        await asyncio.sleep(10)
-        await message.delete()
+        message = await ctx.send("You don't have access to this command!", delete_after=10.0)
 
 discordgsm = DiscordGSM(bot)
 discordgsm.start()
