@@ -1,19 +1,14 @@
 import os
-import discord
-from discord.ext import commands
-from settings import Settings
+import base64
 
-bot = discord.Client()
+from settings import Settings
 
 settings = Settings.get()
 TOKEN = os.getenv('DGSM_TOKEN', settings['token'])
 
-@bot.event
-async def on_ready():
-    print(f'https://discord.com/api/oauth2/authorize?client_id={bot.user.id}&permissions=268954704&scope=bot')
-    await bot.close()
+# validate token
+segs = TOKEN.split('.')
+assert len(segs) == 3, "invalid token"
 
-try:
-    bot.run(TOKEN)
-except:
-    pass
+botid = base64.b64decode(segs[0]).decode()
+print(f"https://discord.com/api/oauth2/authorize?client_id={botid}&permissions=26894704&scope=bot")
