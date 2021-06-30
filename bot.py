@@ -255,7 +255,10 @@ class DiscordGSM():
             embed.add_field(name=FIELD_COUNTRY, value=flag_emoji, inline=True)
 
             embed.add_field(name=FIELD_GAME, value=data['game'], inline=True)
-            embed.add_field(name=FIELD_CURRENTMAP, value=data['map'], inline=True)
+            if data['map'] != '':
+                embed.add_field(name=FIELD_CURRENTMAP, value=data['map'], inline=True)
+            else:
+                embed.add_field(name=FIELD_CURRENTMAP, value='empty', inline=True)
 
             if status == 'Online':
                 value = str(data['players']) # example: 20/32
