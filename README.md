@@ -1,3 +1,7 @@
+# DO NOT USE THIS FORK, IT WILL BITE YOU.
+
+thanks :)
+
 ![screenshot](https://github.com/DiscordGSM/DiscordGSM/raw/master/images/v1.6.0.png)
 
 # DiscordGSM
