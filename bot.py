@@ -18,7 +18,7 @@ from settings import Settings
 # [HEROKU] get and load servers json from SERVERS_JSON env directly
 servers_json = os.getenv('SERVERS_JSON')
 if servers_json and servers_json.strip():
-    with open('configs/servers.json', 'w') as file:
+    with open('configs/servers.json', 'w', encoding='utf-8') as file:
         file.write(servers_json)
 
 # [HEROKU] Check bot token and servers.json valid before start
@@ -27,7 +27,7 @@ if 'DGSM_TOKEN' in os.environ:
     if 'https://discord.com/api/oauth2/authorize?client_id=' not in invite_link:
         while True:
             time.sleep(1)
-    with open('configs/servers.json', 'r') as file:
+    with open('configs/servers.json', 'r', encoding='utf-8') as file:
         try:
             Servers().get()
         except Exception as e:
@@ -358,7 +358,7 @@ async def _setserversjson(ctx, *args):
     if len(args) == 1:
         url = args[0]
         r = requests.get(url)
-        with open('configs/servers.json', 'wb') as file:
+        with open('configs/servers.json', 'wb', encoding='utf-8') as file:
             file.write(r.content)
 
         description = f'File servers.json uploaded'
