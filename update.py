@@ -41,11 +41,6 @@ else:
         # remove zip
         os.remove('temp/DiscordGSM.zip')
 
-        # backup configs file
-        print(f'Copy config files...')
-        files = os.listdir('temp')
-        remote_dir = f'temp/{files[0]}'
-
         print(f'Discord updated successfully.')
 
 input("\nPress Enter to continue...")
