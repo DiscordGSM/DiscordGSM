@@ -85,7 +85,7 @@ class DiscordGSM():
         self.presense_load.cancel()
 
     async def on_ready(self):
-        # set username and avatar
+        # set username and avatar | not very nice for self-hosted users.
         # icon_file_name = 'images/discordgsm' + ('DGSM_TOKEN' in os.environ and '-heroku' or '') + '.png'
         # with open(icon_file_name, 'rb') as file:
         #     try:
@@ -105,13 +105,13 @@ class DiscordGSM():
         self.presense_load.start()
 
         await self.set_channels_permissions()
-        self.print_to_console(f'Query server and send discord embed every {REFRESH_RATE} seconds...')
+        self.print_to_console(f'Query server and send discord embed every {REFRESH_RATE} minutes...')
         await self.refresh_discord_embed()
-        await asyncio.sleep(REFRESH_RATE)
+        await asyncio.sleep(REFRESH_RATE*60)
         self.print_servers.start()
 
     # query the servers
-    @tasks.loop(seconds=REFRESH_RATE)
+    @tasks.loop(minutes=REFRESH_RATE)
     async def query_servers(self):
         server_count = self.servers.query()
         self.print_to_console(f'{server_count} servers queried')
@@ -126,7 +126,7 @@ class DiscordGSM():
         await self.on_ready()
     
     # send messages to discord
-    @tasks.loop(seconds=REFRESH_RATE)
+    @tasks.loop(minutes=REFRESH_RATE)
     async def print_servers(self):
         if self.message_error_count < 20:
             updated_count = 0
@@ -284,7 +284,13 @@ class DiscordGSM():
             embed.add_field(name=FIELD_COUNTRY, value=flag_emoji, inline=True)
 
             embed.add_field(name=FIELD_GAME, value=data['game'], inline=True)
-            embed.add_field(name=FIELD_CURRENTMAP, value=data['map'], inline=True)
+            
+            if "map" in server and server["map"]:
+                embed.add_field(name=FIELD_CURRENTMAP, value=server["map"], inline=True)
+            elif len(data["map"]) > 0:
+                embed.add_field(name=FIELD_CURRENTMAP, value=data["map"], inline=True)
+            else:
+                embed.add_field(name=u"\u200B", value=u"\u200B", inline=True)
 
             if status == 'Online':
                 value = str(data['players']) # example: 20/32
