@@ -144,7 +144,7 @@ class DiscordGSM():
         if len(self.server_list) == 0:
             activity_text = f'Command: {DGSM_PREFIX}dgsm'
         if PRESENCE_TYPE <= 1:
-            activity_text = f'{len(self.server_list)} game servers'
+            activity_text = f'{len(self.servers.get_distinct_servers())} game servers'
         elif PRESENCE_TYPE == 2:
             total_activeplayers = total_maxplayers = 0
             for server in self.server_list:
