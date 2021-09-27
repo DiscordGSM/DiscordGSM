@@ -52,6 +52,7 @@ FIELD_GAME = os.getenv("FIELD_GAME", SETTINGS["fieldname"]["game"])
 FIELD_CURRENTMAP = os.getenv("FIELD_CURRENTMAP", SETTINGS["fieldname"]["currentmap"])
 FIELD_PLAYERS = os.getenv("FIELD_PLAYERS", SETTINGS["fieldname"]["players"])
 FIELD_COUNTRY = os.getenv("FIELD_COUNTRY", SETTINGS["fieldname"]["country"])
+SEND_DELAY = 2
 
 class DiscordGSM():
     def __init__(self, bot):
@@ -63,7 +64,6 @@ class DiscordGSM():
         self.bot = bot
         self.servers = Servers()
         self.server_list = self.servers.get()
-        self.messages = []
         self.message_error_count = self.current_display_server = 0
 
     def start(self):
@@ -98,6 +98,7 @@ class DiscordGSM():
         await self.set_channels_permissions()
         self.print_to_console(f'Query server and send discord embed every {REFRESH_RATE} seconds...')
         await self.refresh_discord_embed()
+        await asyncio.sleep(REFRESH_RATE)
         self.print_servers.start()
 
     # query the servers
@@ -122,12 +123,14 @@ class DiscordGSM():
             updated_count = 0
             for i in range(len(self.server_list)):
                 try:
-                    await self.messages[i].edit(content=('frontMessage' in self.server_list[i] and self.server_list[i]['frontMessage'].strip()) and self.server_list[i]['frontMessage'] or None, embed=self.get_embed(self.server_list[i]))
+                    await self.messages[i].edit(embed=self.get_embed(self.server_list[i]))
                     updated_count += 1
                 except:
                     self.message_error_count += 1
-                    self.print_to_console(f'ERROR: message {i} fail to edit, message deleted or no permission. Server: {self.server_list[i]["addr"]}:{self.server_list[i]["port"]}')
-
+                    self.print_to_console(f'ERROR: message {i} failed to edit, message deleted or no permission. Server: {self.server_list[i]["address"]}:{self.server_list[i]["port"]}')
+                finally:
+                    await asyncio.sleep(SEND_DELAY)
+       
             self.print_to_console(f'{updated_count} messages updated')
         else:
             self.message_error_count = 0
@@ -185,15 +188,32 @@ class DiscordGSM():
         # refresh servers.json cache
         self.servers = Servers()
         self.server_list = self.servers.get()
-
+        self.messages = []
+        repost_count = 0
         # remove old discord embed
         channels = [server['channel'] for server in self.server_list]
         channels = list(set(channels)) # remove duplicated channels
         for channel in channels:
-            await bot.get_channel(channel).purge(check=lambda m: m.author==bot.user)
-        
+            try:
+                await bot.get_channel(channel).purge(check=lambda m: m.author==bot.user)
+            except:
+                self.print_to_console(f'ERROR: Unable to delete messages.')
+            finally:
+                await asyncio.sleep(SEND_DELAY)
+
         # send new discord embed
-        self.messages = [await bot.get_channel(s['channel']).send(content=('frontMessage' in s and s['frontMessage'].strip()) and s['frontMessage'] or None, embed=self.get_embed(s)) for s in self.server_list]
+        for s in self.server_list:
+            try:
+                message = await bot.get_channel(s["channel"]).send(embed=self.get_embed(s))
+                self.messages.append(message)
+                repost_count += 1
+            except:
+                self.message_error_count += 1
+                self.print_to_console(f'ERROR: message fail to send, no permission. Server: {s["address"]}:{s["port"]}')
+            finally:
+                await asyncio.sleep(SEND_DELAY)
+
+        self.print_to_console(f'{repost_count} messages reposted')
     
     def print_to_console(self, value):
         print(datetime.now().strftime('%Y-%m-%d %H:%M:%S: ') + value)
