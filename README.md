@@ -12,8 +12,11 @@
 1. [Invite DiscordGSM](https://github.com/DiscordGSM/DiscordGSM/wiki/Invite-DiscordGSM)
 2. [Deploy to Heroku](https://github.com/DiscordGSM/DiscordGSM/wiki/Install-%E2%80%93-Deploy-to-Heroku)
 3. [Self Hosting](https://github.com/DiscordGSM/DiscordGSM/wiki/Install-%E2%80%93-Self-Hosting)
-    3.1.  Copy dot_env and rename it .env then customize your settings
+
+    3.1.  Copy dot_env and rename it .env then customize your settings.
+
     3.2.  Copy servers_template.json and rename it servers.json and add your servers.
+
 4. [Docker](https://github.com/DiscordGSM/DiscordGSM/wiki/Install-%E2%80%93-Docker)
 
 ## Supported Query Type
