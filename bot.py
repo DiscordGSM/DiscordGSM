@@ -13,7 +13,6 @@ from discord.ext import tasks, commands
 # discordgsm
 from bin import *
 from servers import Servers, ServerCache
-from settings import Settings
 
 # [HEROKU] get and load servers json from SERVERS_JSON env directly
 servers_json = os.getenv('SERVERS_JSON')
@@ -87,12 +86,12 @@ class DiscordGSM():
 
     async def on_ready(self):
         # set username and avatar
-        icon_file_name = 'images/discordgsm' + ('DGSM_TOKEN' in os.environ and '-heroku' or '') + '.png'
-        with open(icon_file_name, 'rb') as file:
-            try:
-                await client.user.edit(username='DiscordGSM', avatar=file.read())
-            except:
-                pass
+        # icon_file_name = 'images/discordgsm' + ('DGSM_TOKEN' in os.environ and '-heroku' or '') + '.png'
+        # with open(icon_file_name, 'rb') as file:
+        #     try:
+        #         await client.user.edit(username='DiscordGSM', avatar=file.read())
+        #     except:
+        #         pass
 
         # print info to console
         print('\n----------------')
