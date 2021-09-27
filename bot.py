@@ -55,13 +55,13 @@ FIELD_COUNTRY = os.getenv("FIELD_COUNTRY", SETTINGS["fieldname"]["country"])
 SEND_DELAY = 2
 
 class DiscordGSM():
-    def __init__(self, bot):
+    def __init__(self, client):
         print('\n----------------')
         print('Github: \thttps://github.com/DiscordGSM/DiscordGSM')
         print('Discord:\thttps://discord.gg/Cg4Au9T')
         print('----------------\n')
 
-        self.bot = bot
+        self.client = client
         self.servers = Servers()
         self.server_list = self.servers.get()
         self.message_error_count = self.current_display_server = 0
@@ -80,15 +80,15 @@ class DiscordGSM():
         icon_file_name = 'images/discordgsm' + ('DGSM_TOKEN' in os.environ and '-heroku' or '') + '.png'
         with open(icon_file_name, 'rb') as file:
             try:
-                await bot.user.edit(username='DiscordGSM', avatar=file.read())
+                await client.user.edit(username='DiscordGSM', avatar=file.read())
             except:
                 pass
 
         # print info to console
         print('\n----------------')
-        print(f'Logged in as:\t{bot.user.name}')
-        print(f'Robot ID:\t{bot.user.id}')
-        app_info = await bot.application_info()
+        print(f'Logged in as:\t{client.user.name}')
+        print(f'Robot ID:\t{client.user.id}')
+        app_info = await client.application_info()
         print(f'Owner ID:\t{app_info.owner.id} ({app_info.owner.name})')
         print('----------------\n')
 
@@ -113,7 +113,7 @@ class DiscordGSM():
         self.print_to_console('Pre-Query servers...')
         server_count = self.servers.query()
         self.print_to_console(f'{server_count} servers queried')
-        await self.bot.wait_until_ready()
+        await self.client.wait_until_ready()
         await self.on_ready()
     
     # send messages to discord
@@ -169,7 +169,7 @@ class DiscordGSM():
             self.current_display_server += 1
 
         if activity_text != None:
-            await bot.change_presence(status=discord.Status.online, activity=discord.Activity(name=activity_text, type=3))
+            await client.change_presence(status=discord.Status.online, activity=discord.Activity(name=activity_text, type=3))
             self.print_to_console(f'Discord presence updated | {activity_text}')
 
     # set channels permissions before sending new messages
@@ -178,7 +178,7 @@ class DiscordGSM():
         channels = list(set(channels))  # remove duplicated channels
         for channel in channels:
             try:
-                await bot.get_channel(channel).set_permissions(bot.user, read_messages=True, send_messages=True, reason='Display servers embed')
+                await client.get_channel(channel).set_permissions(client.user, read_messages=True, send_messages=True, reason='Display servers embed')
                 self.print_to_console(f'Channel: {channel} | Permissions: read_messages, send_messages | Permissions set successfully')
             except:
                 self.print_to_console(f'Channel: {channel} | Permissions: read_messages, send_messages | ERROR: Permissions fail to set')
@@ -195,7 +195,7 @@ class DiscordGSM():
         channels = list(set(channels)) # remove duplicated channels
         for channel in channels:
             try:
-                await bot.get_channel(channel).purge(check=lambda m: m.author==bot.user)
+                await client.get_channel(channel).purge(check=lambda m: m.author==client.user)
             except:
                 self.print_to_console(f'ERROR: Unable to delete messages.')
             finally:
@@ -204,7 +204,7 @@ class DiscordGSM():
         # send new discord embed
         for s in self.server_list:
             try:
-                message = await bot.get_channel(s["channel"]).send(embed=self.get_embed(s))
+                message = await client.get_channel(s["channel"]).send(embed=self.get_embed(s))
                 self.messages.append(message)
                 repost_count += 1
             except:
@@ -305,11 +305,11 @@ class DiscordGSM():
     def get_server_list(self):
         return self.server_list
 
-bot = commands.Bot(command_prefix=DGSM_PREFIX)
+client = commands.Client(command_prefix=DGSM_PREFIX)
 
 # command: dgsm
 # display dgsm informations
-@bot.command(name='dgsm', aliases=['discordgsm'], brief='Display DiscordGSM\'s informations')
+@client.command(name='dgsm', aliases=['discordgsm'], brief='Display DiscordGSM\'s informations')
 @commands.check_any(commands.has_role(ROLE_ID), commands.is_owner())
 async def _dgsm(ctx):
     title = f'Command: {DGSM_PREFIX}dgsm'
@@ -326,7 +326,7 @@ async def _dgsm(ctx):
 
 # command: serversrefresh
 # refresh the server list
-@bot.command(name='serversrefresh', brief='Refresh the server list')
+@client.command(name='serversrefresh', brief='Refresh the server list')
 @commands.check_any(commands.has_role(ROLE_ID), commands.is_owner())
 async def _serversrefresh(ctx):
     # refresh discord servers list
@@ -341,7 +341,7 @@ async def _serversrefresh(ctx):
 
 # command: servers
 # list all the servers in configs/servers.json
-@bot.command(name='servers', brief='List all the servers in servers.json')
+@client.command(name='servers', brief='List all the servers in servers.json')
 @commands.check_any(commands.has_role(ROLE_ID), commands.is_owner())
 async def _servers(ctx):
     title = f'Command: {DGSM_PREFIX}servers'
@@ -362,14 +362,14 @@ async def _servers(ctx):
 
 # command: getserversjson
 # get configs/servers.json
-@bot.command(name='getserversjson', brief='Get servers.json file')
+@client.command(name='getserversjson', brief='Get servers.json file')
 @commands.check_any(commands.has_role(ROLE_ID), commands.is_owner())
 async def _getserversjson(ctx):
     await ctx.send(file=discord.File('configs/servers.json'))
 
 # command: setserversjson
 # set configs/servers.json
-@bot.command(name='setserversjson', brief='Set servers.json file')
+@client.command(name='setserversjson', brief='Set servers.json file')
 @commands.check_any(commands.has_role(ROLE_ID), commands.is_owner())
 async def _setserversjson(ctx, *args):
     title = f'Command: {DGSM_PREFIX}setserversjson'
@@ -391,12 +391,12 @@ async def _setserversjson(ctx, *args):
     await ctx.send(embed=embed)
 
 # error handling on Missing Role
-@bot.event
+@client.event
 async def on_command_error(ctx, error):
     if isinstance(error, commands.CheckAnyFailure):
         await ctx.send("You don't have access to this command!", delete_after=10.0)
 
-discordgsm = DiscordGSM(bot)
+discordgsm = DiscordGSM(client)
 discordgsm.start()
 
-bot.run(DGSM_TOKEN)
+client.run(DGSM_TOKEN)
