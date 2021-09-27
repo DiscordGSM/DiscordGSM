@@ -11,4 +11,4 @@ segs = TOKEN.split('.')
 assert len(segs) == 3, "invalid token"
 
 clientid = base64.b64decode(segs[0]).decode()
-print(f"https://discord.com/api/oauth2/authorize?client_id={clientid}&permissions=26894704&scope=bot")
+print(f"https://discord.com/api/oauth2/authorize?client_id={clientid}&permissions=339008&scope=bot")

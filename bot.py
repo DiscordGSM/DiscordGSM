@@ -104,7 +104,6 @@ class DiscordGSM():
         self.print_presense_hint()
         self.presense_load.start()
 
-        await self.set_channels_permissions()
         self.print_to_console(f'Query server and send discord embed every {REFRESH_RATE} minutes...')
         await self.refresh_discord_embed()
         await asyncio.sleep(REFRESH_RATE*60)
@@ -180,17 +179,6 @@ class DiscordGSM():
         if activity_text != None:
             await client.change_presence(status=discord.Status.online, activity=discord.Activity(name=activity_text, type=3))
             self.print_to_console(f'Discord presence updated | {activity_text}')
-
-    # set channels permissions before sending new messages
-    async def set_channels_permissions(self):
-        channels = [server['channel'] for server in self.server_list]
-        channels = list(set(channels))  # remove duplicated channels
-        for channel in channels:
-            try:
-                await client.get_channel(channel).set_permissions(client.user, read_messages=True, send_messages=True, reason='Display servers embed')
-                self.print_to_console(f'Channel: {channel} | Permissions: read_messages, send_messages | Permissions set successfully')
-            except:
-                self.print_to_console(f'Channel: {channel} | Permissions: read_messages, send_messages | ERROR: Permissions fail to set')
 
     # remove old discord embed and send new discord embed
     async def refresh_discord_embed(self):
