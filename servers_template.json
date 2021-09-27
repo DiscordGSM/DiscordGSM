@@ -1,0 +1,22 @@
+[
+    {
+        "type": "[string][mandatory] GamedigQuery or SourceQuery or UT3Query or Fake.",
+        "game": "[string][mandatory] See https://github.com/gamedig/node-gamedig",
+        "address": "[string][mandatory] Relative server address.",
+        "port": "[int][mandatory] Server Port.",
+        "channel": "[int][mandatory] Discord channel id.",
+        "image_url": "[string][optional] URL https://static.wikia.nocookie.net/minecraft_gamepedia/images/9/93/Grass_Block_JE7_BE6.png",
+        "custom": "[string][optional] Additionnal information message showed at the bottom of the server embed",
+        "country": "[string][optional] Two Letter Country code, overwrite auto-detection if defined.",
+        "color": "[string][optional] RGB color code : #5b8731",
+        "title": "[string][optional] Title of the Embed message.",
+        "publicaddress": "[string][optional] Diplayed address with port.",
+        "lock": "[bool][optional] Will show the locked icon or unlocked icon.",
+        "password": "[string][optional] Server Password.",
+        "showmap": "[bool][optional] Show the map field.",
+        "map": "[string][optional] Overwrite Map Name.",
+        "showcountry": "[bool][optional] Show the country field.",
+        "maxplayers": "[int][optional] Maximum number of players, overwrite auto-detection if defined.",
+        "hostname": "[string][optional] replaces the value of hostname for Fake Query Type."
+    }
+]
