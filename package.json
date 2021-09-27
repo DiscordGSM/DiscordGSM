@@ -1,9 +1,9 @@
 {
     "name": "discordgsm",
-    "version": "1.0.0",
+    "version": "1.9.0",
     "description": "Monitor your game servers on Discord",
     "engines": {
-        "node": "14.x"
+        "node": "16.x"
     },
     "scripts": {
         "build": "npm install -g gamedig",
@@ -11,7 +11,9 @@
     },
     "license": "MIT",
     "dependencies": {
-        "ejs": "^3.1.5",
-        "express": "^4.17.1"
+        "ejs": "^3.1.6",
+        "express": "^4.17.1",
+        "gamedig": "^3.0.7",
+        "npm": "^7.24.1"
     }
 }
