@@ -23,7 +23,7 @@ class Servers:
             if 'country' not in server:
                 try:
                     with urllib.request.urlopen(f'https://ipinfo.io/{socket.gethostbyname(server["addr"])}/country') as response:
-                        country = response.read().decode("utf8")
+                        country = response.read().decode("utf-8")
                         if '{' not in country: # may response error json
                             server['country'] = country.rstrip() # rstrip is used because of \n
                             is_edited = True
@@ -31,14 +31,14 @@ class Servers:
                     pass
 
         if is_edited:
-            with open('configs/servers.json', 'w', encoding='utf8') as file:
+            with open('configs/servers.json', 'w', encoding='utf-8') as file:
                 json.dump(servers, file, ensure_ascii=False, indent=4)
 
         self.servers = servers 
 
     # get servers data
     def get(self):
-        with open('configs/servers.json', 'r') as file:
+        with open('configs/servers.json', 'r', encoding='utf-8') as file:
             data = file.read()
 
         return json.loads(data)
@@ -53,7 +53,7 @@ class Servers:
         servers = self.get()
         servers.append(data)
 
-        with open('configs/servers.json', 'w', encoding='utf8') as file:
+        with open('configs/servers.json', 'w', encoding='utf-8') as file:
             json.dump(servers, file, ensure_ascii=False, indent=4)
 
     # delete a server by id
@@ -62,7 +62,7 @@ class Servers:
         if 0 < int(id) <= len(servers):
             del servers[int(id) - 1]
 
-            with open('configs/servers.json', 'w', encoding='utf8') as file:
+            with open('configs/servers.json', 'w', encoding='utf-8') as file:
                 json.dump(servers, file, ensure_ascii=False, indent=4)
             
             return True
@@ -121,18 +121,18 @@ class ServerCache:
 
     def get_status(self):
         try:
-            with open(f'cache/{self.file_name}.txt', 'r', encoding='utf8') as file:
+            with open(f'cache/{self.file_name}.txt', 'r', encoding='utf-8') as file:
                 return file.read()
         except:
             return False
 
     def set_status(self, status):
-        with open(f'cache/{self.file_name}.txt', 'w', encoding='utf8') as file:
+        with open(f'cache/{self.file_name}.txt', 'w', encoding='utf-8') as file:
             file.write(str(status))
 
     def get_data(self):
         try:
-            with open(f'cache/{self.file_name}.json', 'r', encoding='utf8') as file:
+            with open(f'cache/{self.file_name}.json', 'r', encoding='utf-8') as file:
                 return json.load(file)
         except EnvironmentError:
             return False
@@ -151,5 +151,5 @@ class ServerCache:
 
         self.set_status('Online')
 
-        with open(f'cache/{self.file_name}.json', 'w', encoding='utf8') as file:
+        with open(f'cache/{self.file_name}.json', 'w', encoding='utf-8') as file:
             json.dump(data, file, ensure_ascii=False, indent=4)

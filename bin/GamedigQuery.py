@@ -15,7 +15,7 @@ class GamedigQuery(object):
             process = subprocess.run(
                 ['gamedig', '--type', str(self.game), '--host', str(self.ip), '--port', str(self.port)],
                 stdout=subprocess.PIPE, shell=platform.system() == 'Windows' and True or False)
-            output = process.stdout.decode('utf8')
+            output = process.stdout.decode('utf-8')
 
             json_reader = json.loads(str(output).replace("b'", "").replace("\\n'", ""))
 
