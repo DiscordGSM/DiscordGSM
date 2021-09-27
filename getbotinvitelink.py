@@ -1,10 +1,7 @@
 import os
 import base64
 
-from settings import Settings
-
-settings = Settings.get()
-TOKEN = os.getenv('DGSM_TOKEN', settings['token'])
+TOKEN = os.getenv('DGSM_TOKEN')
 
 # validate token
 segs = TOKEN.split('.')
