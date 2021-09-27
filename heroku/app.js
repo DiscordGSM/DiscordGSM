@@ -5,7 +5,7 @@ const https = require('https')
 const path = require('path')
 const fs = require('fs')
 const version = new RegExp("VERSION.{0,}=.{0,}'(.*)'").exec(fs.readFileSync(path.join(__dirname, '/../bot.py')))[1] // Get DiscordGSM verison from bot.py
-const serversJson = heroku ? process.env.SERVERS_JSON : fs.readFileSync(path.join(__dirname, '/../configs/servers.json')) // Get servers.json data
+const serversJson = heroku ? process.env.SERVERS_JSON : fs.readFileSync(path.join(__dirname, '/../servers.json')) // Get servers.json data
 const inviteLink = require('child_process').execSync(`${(heroku ? 'python3 ' : '')}getbotinvitelink.py`, { encoding : 'utf-8' }) // Get bot invite link by getbotinvitelink.py
 
 const app = express()

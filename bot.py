@@ -18,7 +18,7 @@ from settings import Settings
 # [HEROKU] get and load servers json from SERVERS_JSON env directly
 servers_json = os.getenv('SERVERS_JSON')
 if servers_json and servers_json.strip():
-    with open('configs/servers.json', 'w', encoding='utf-8') as file:
+    with open('servers.json', 'w', encoding='utf-8') as file:
         file.write(servers_json)
 
 # [HEROKU] Check bot token and servers.json valid before start
@@ -27,7 +27,7 @@ if 'DGSM_TOKEN' in os.environ:
     if 'https://discord.com/api/oauth2/authorize?client_id=' not in invite_link:
         while True:
             time.sleep(1)
-    with open('configs/servers.json', 'r', encoding='utf-8') as file:
+    with open('servers.json', 'r', encoding='utf-8') as file:
         try:
             Servers().get()
         except Exception as e:
@@ -35,24 +35,34 @@ if 'DGSM_TOKEN' in os.environ:
             while True:
                 time.sleep(1)
 
-# env values
+# load env
+import os
+from dotenv import load_dotenv
+load_dotenv()
+
 VERSION = '1.9.0'
-SETTINGS = Settings.get()
-DGSM_TOKEN = os.getenv('DGSM_TOKEN', SETTINGS['token'])
-DGSM_PREFIX = os.getenv("DGSM_PREFIX", SETTINGS.get('prefix', '!'))
-ROLE_ID = os.getenv('ROLE_ID', SETTINGS.get('role_id', '123'))
-CUSTOM_IMAGE_URL = os.getenv('CUSTOM_IMAGE_URL', SETTINGS.get('image_url', ''))
-REFRESH_RATE = int(os.getenv('REFRESH_RATE', SETTINGS['refreshrate'])) if int(os.getenv('REFRESH_RATE', SETTINGS['refreshrate'])) > 5 else 5
-PRESENCE_TYPE = int(os.getenv('PRESENCE_TYPE', SETTINGS.get('presence_type', 3)))
-PRESENCE_RATE = int(os.getenv('PRESENCE_RATE', SETTINGS.get('presence_rate', 5))) if int(os.getenv('PRESENCE_RATE', SETTINGS.get('presence_rate', 5))) > 1 else 1
-FIELD_STATUS = os.getenv("FIELD_STATUS", SETTINGS["fieldname"]["status"])
-FIELD_ADDRESS = os.getenv("FIELD_ADDRESS", SETTINGS["fieldname"]["address"])
-FIELD_PORT = os.getenv("FIELD_PORT", SETTINGS["fieldname"]["port"])
-FIELD_GAME = os.getenv("FIELD_GAME", SETTINGS["fieldname"]["game"])
-FIELD_CURRENTMAP = os.getenv("FIELD_CURRENTMAP", SETTINGS["fieldname"]["currentmap"])
-FIELD_PLAYERS = os.getenv("FIELD_PLAYERS", SETTINGS["fieldname"]["players"])
-FIELD_COUNTRY = os.getenv("FIELD_COUNTRY", SETTINGS["fieldname"]["country"])
-SEND_DELAY = 2
+# Get Env
+PREFIX=os.getenv("DGSM_PREFIX")
+ROLEID=os.getenv("DGSM_ROLEID")
+CUSTOM_IMAGE_URL=os.getenv("DGSM_CUSTOM_IMAGE_URL")
+REFRESH_RATE=int(os.getenv("DGSM_REFRESH_RATE"))
+PRESENCE_TYPE=int(os.getenv("DGSM_PRESENCE_TYPE"))
+PRESENCE_RATE=int(os.getenv("DGSM_PRESENCE_RATE"))
+SEND_DELAY=int(os.getenv("DGSM_SEND_DELAY"))
+FIELD_NAME=os.getenv("DGSM_FIELD_NAME")
+FIELD_STATUS=os.getenv("DGSM_FIELD_STATUS")
+FIELD_ADDRESS=os.getenv("DGSM_FIELD_ADDRESS")
+FIELD_PORT=os.getenv("DGSM_FIELD_PORT")
+FIELD_GAME=os.getenv("DGSM_FIELD_GAME")
+FIELD_CURRENTMAP=os.getenv("DGSM_FIELD_CURRENTMAP")
+FIELD_PLAYERS=os.getenv("DGSM_FIELD_PLAYERS")
+FIELD_COUNTRY=os.getenv("DGSM_FIELD_COUNTRY")
+FIELD_LASTUPDATE=os.getenv("DGSM_FIELD_LASTUPDATE")
+FIELD_CUSTOM=os.getenv("DGSM_FIELD_CUSTOM")
+FIELD_PASSWORD=os.getenv("DGSM_FIELD_PASSWORD")
+FIELD_ONLINE=os.getenv("DGSM_FIELD_ONLINE")
+FIELD_OFFLINE=os.getenv("DGSM_FIELD_OFFLINE")
+FIELD_UNKNOWN=os.getenv("DGSM_FIELD_UNKNOWN")
 
 class DiscordGSM():
     def __init__(self, client):
@@ -142,7 +152,7 @@ class DiscordGSM():
     async def presense_load(self):
         # 1 = display number of servers, 2 = display total players/total maxplayers, 3 = display each server one by one every 10 minutes
         if len(self.server_list) == 0:
-            activity_text = f'Command: {DGSM_PREFIX}dgsm'
+            activity_text = f'Command: {PREFIX}dgsm'
         if PRESENCE_TYPE <= 1:
             activity_text = f'{len(self.servers.get_distinct_servers())} game servers'
         elif PRESENCE_TYPE == 2:
@@ -305,19 +315,19 @@ class DiscordGSM():
     def get_server_list(self):
         return self.server_list
 
-client = commands.Client(command_prefix=DGSM_PREFIX)
+client = commands.Client(command_prefix=PREFIX)
 
 # command: dgsm
 # display dgsm informations
 @client.command(name='dgsm', aliases=['discordgsm'], brief='Display DiscordGSM\'s informations')
-@commands.check_any(commands.has_role(ROLE_ID), commands.is_owner())
+@commands.check_any(commands.has_role(ROLEID), commands.is_owner())
 async def _dgsm(ctx):
-    title = f'Command: {DGSM_PREFIX}dgsm'
+    title = f'Command: {PREFIX}dgsm'
     description = f'Thanks for using Discord Game Server Monitor ([DiscordGSM](https://github.com/DiscordGSM/DiscordGSM))\n'
-    description += f'\nUseful commands:\n{DGSM_PREFIX}servers - Display the server list'
-    description += f'\n{DGSM_PREFIX}serversrefresh - Refresh the server list'
-    description += f'\n{DGSM_PREFIX}getserversjson - get servers.json file'
-    description += f'\n{DGSM_PREFIX}setserversjson - set servers.json file'
+    description += f'\nUseful commands:\n{PREFIX}servers - Display the server list'
+    description += f'\n{PREFIX}serversrefresh - Refresh the server list'
+    description += f'\n{PREFIX}getserversjson - get servers.json file'
+    description += f'\n{PREFIX}setserversjson - set servers.json file'
     color = discord.Color.from_rgb(114, 137, 218) # discord theme color
     embed = discord.Embed(title=title, description=description, color=color)
     embed.add_field(name='Support server', value='https://discord.gg/Cg4Au9T', inline=True)
@@ -327,24 +337,24 @@ async def _dgsm(ctx):
 # command: serversrefresh
 # refresh the server list
 @client.command(name='serversrefresh', brief='Refresh the server list')
-@commands.check_any(commands.has_role(ROLE_ID), commands.is_owner())
+@commands.check_any(commands.has_role(ROLEID), commands.is_owner())
 async def _serversrefresh(ctx):
     # refresh discord servers list
     await discordgsm.refresh_discord_embed()
     discordgsm.print_to_console('Server list refreshed')
 
     # send response
-    title = f'Command: {DGSM_PREFIX}serversrefresh'
+    title = f'Command: {PREFIX}serversrefresh'
     color = discord.Color.from_rgb(114, 137, 218) # discord theme color
     embed = discord.Embed(title=title, description=f'Servers list refreshed', color=color)
     await ctx.send(embed=embed)
 
 # command: servers
-# list all the servers in configs/servers.json
+# list all the servers in servers.json
 @client.command(name='servers', brief='List all the servers in servers.json')
-@commands.check_any(commands.has_role(ROLE_ID), commands.is_owner())
+@commands.check_any(commands.has_role(ROLEID), commands.is_owner())
 async def _servers(ctx):
-    title = f'Command: {DGSM_PREFIX}servers'
+    title = f'Command: {PREFIX}servers'
     color = discord.Color.from_rgb(114, 137, 218) # discord theme color
     embed = discord.Embed(title=title, color=color)
     type, addr_port, channel = '', '', ''
@@ -363,22 +373,22 @@ async def _servers(ctx):
 # command: getserversjson
 # get configs/servers.json
 @client.command(name='getserversjson', brief='Get servers.json file')
-@commands.check_any(commands.has_role(ROLE_ID), commands.is_owner())
+@commands.check_any(commands.has_role(ROLEID), commands.is_owner())
 async def _getserversjson(ctx):
-    await ctx.send(file=discord.File('configs/servers.json'))
+    await ctx.send(file=discord.File('servers.json'))
 
 # command: setserversjson
-# set configs/servers.json
+# set servers.json
 @client.command(name='setserversjson', brief='Set servers.json file')
-@commands.check_any(commands.has_role(ROLE_ID), commands.is_owner())
+@commands.check_any(commands.has_role(ROLEID), commands.is_owner())
 async def _setserversjson(ctx, *args):
-    title = f'Command: {DGSM_PREFIX}setserversjson'
+    title = f'Command: {PREFIX}setserversjson'
     color = discord.Color.from_rgb(114, 137, 218) # discord theme color
 
     if len(args) == 1:
         url = args[0]
         r = requests.get(url)
-        with open('configs/servers.json', 'wb', encoding='utf-8') as file:
+        with open('servers.json', 'wb', encoding='utf-8') as file:
             file.write(r.content)
 
         description = f'File servers.json uploaded'
@@ -386,7 +396,7 @@ async def _setserversjson(ctx, *args):
         await ctx.send(embed=embed)
         return
 
-    description = f'Usage: {DGSM_PREFIX}setserversjson <url>\nRemark: <url> is the servers.json download url'
+    description = f'Usage: {PREFIX}setserversjson <url>\nRemark: <url> is the servers.json download url'
     embed = discord.Embed(title=title, description=description, color=color)
     await ctx.send(embed=embed)
 
@@ -399,4 +409,4 @@ async def on_command_error(ctx, error):
 discordgsm = DiscordGSM(client)
 discordgsm.start()
 
-client.run(DGSM_TOKEN)
+client.run(PREFIX=os.getenv("DGSM_TOKEN"))
