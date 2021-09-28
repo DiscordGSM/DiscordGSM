@@ -352,16 +352,16 @@ async def _servers(ctx):
     title = f'Command: {PREFIX}servers'
     color = discord.Color.from_rgb(114, 137, 218) # discord theme color
     embed = discord.Embed(title=title, color=color)
-    type, addr_port, channel = '', '', ''
+    type, address_port, channel = '', '', ''
     servers = discordgsm.get_server_list()
 
     for i in range(len(servers)):
         type += f'`{i+1}`. {servers[i]["type"]}\n'
-        addr_port += f'`{servers[i]["address"]}:{servers[i]["port"]}`\n'
+        address_port += f'`{servers[i]["address"]}:{servers[i]["port"]}`\n'
         channel += f'`{servers[i]["channel"]}`\n'
 
     embed.add_field(name='ID. Type', value=type, inline=True)
-    embed.add_field(name='Address:Port', value=addr_port, inline=True)
+    embed.add_field(name='Address:Port', value=address_port, inline=True)
     embed.add_field(name='Channel ID', value=channel, inline=True)
     await ctx.send(embed=embed)
 
