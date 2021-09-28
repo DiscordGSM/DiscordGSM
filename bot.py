@@ -4,6 +4,7 @@ import urllib
 import asyncio
 import requests
 import subprocess
+import base64
 from datetime import datetime
 
 # discord
@@ -20,19 +21,20 @@ if servers_json and servers_json.strip():
     with open('servers.json', 'w', encoding='utf-8') as file:
         file.write(servers_json)
 
-# [HEROKU] Check bot token and servers.json valid before start
-if 'DGSM_TOKEN' in os.environ:
-    invite_link = subprocess.run(['python3', 'getbotinvitelink.py'], stdout=subprocess.PIPE, shell=False).stdout.decode('utf-8')
-    if 'https://discord.com/api/oauth2/authorize?client_id=' not in invite_link:
-        while True:
-            time.sleep(1)
-    with open('servers.json', 'r', encoding='utf-8') as file:
-        try:
-            Servers().get()
-        except Exception as e:
-            print(e)
-            while True:
-                time.sleep(1)
+# Check bot token and servers.json valid before start
+segs = os.getenv('DGSM_TOKEN').split('.')
+assert len(segs) == 3, "invalid token"
+#decode
+clientid = base64.b64decode(segs[0]).decode()
+invite_link = f"https://discord.com/api/oauth2/authorize?client_id={clientid}&permissions=339008&scope=bot"
+print(invite_link)
+
+with open('servers.json', 'r', encoding='utf-8') as file:
+    try:
+        Servers().get()
+    except Exception as e:
+        print(e)
+        exit
 
 # load env
 import os
@@ -308,7 +310,7 @@ class DiscordGSM():
     def get_server_list(self):
         return self.server_list
 
-client = commands.Client(command_prefix=PREFIX)
+client = commands.Bot(command_prefix=PREFIX)
 
 # command: dgsm
 # display dgsm informations
