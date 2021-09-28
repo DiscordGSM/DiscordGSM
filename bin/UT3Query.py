@@ -8,8 +8,8 @@ import sys
 import re
 
 class UT3Query(object):
-    def __init__(self, addr, port=19132, timeout=5.0):
-        self.ip, self.port, self.timeout = socket.gethostbyname(addr), port, timeout
+    def __init__(self, address, port=19132, timeout=5.0):
+        self.ip, self.port, self.timeout = socket.gethostbyname(address), port, timeout
         self.sock = False
 
     def disconnect(self):

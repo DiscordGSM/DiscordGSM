@@ -7,8 +7,8 @@ import json
 import re
 
 class GamedigQuery(object):
-    def __init__(self, game, addr, port=27015):
-        self.game, self.ip, self.port = game, addr, port
+    def __init__(self, game, address, port=27015):
+        self.game, self.ip, self.port = game, address, port
 
     def getInfo(self):
         try:

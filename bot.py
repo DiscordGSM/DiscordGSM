@@ -123,7 +123,7 @@ class DiscordGSM():
         self.print_to_console('Pre-Query servers...')
         server_count = self.servers.query()
         self.print_to_console(f'{server_count} servers queried')
-        await self.client.wait_until_ready()
+        await client.wait_until_ready()
         await self.on_ready()
     
     # send messages to discord
@@ -158,7 +158,7 @@ class DiscordGSM():
         elif PRESENCE_TYPE == 2:
             total_activeplayers = total_maxplayers = 0
             for server in self.server_list:
-                server_cache = ServerCache(server['addr'], server['port'])
+                server_cache = ServerCache(server['address'], server['port'])
                 data = server_cache.get_data()
                 if data and server_cache.get_status() == 'Online':
                     total_activeplayers += int(data['players'])
@@ -169,7 +169,7 @@ class DiscordGSM():
             if self.current_display_server >= len(self.server_list):
                 self.current_display_server = 0
 
-            server_cache = ServerCache(self.server_list[self.current_display_server]['addr'], self.server_list[self.current_display_server]['port'])
+            server_cache = ServerCache(self.server_list[self.current_display_server]['address'], self.server_list[self.current_display_server]['port'])
             data = server_cache.get_data()
             if data and server_cache.get_status() == 'Online':
                 activity_text = f'{data["players"]}/{data["maxplayers"]} on {data["name"]}' if int(data["maxplayers"]) > 0 else '0 players'
@@ -230,7 +230,7 @@ class DiscordGSM():
     # get game server discord embed
     def get_embed(self, server):
         # load server cache
-        server_cache = ServerCache(server['addr'], server['port'])
+        server_cache = ServerCache(server['address'], server['port'])
 
         # load server data
         data = server_cache.get_data()
@@ -263,12 +263,12 @@ class DiscordGSM():
             if custom and custom.strip():
                 embed = discord.Embed(title=title, description=custom, color=color)
             elif server['type'] == 'SourceQuery' and not custom:
-                embed = discord.Embed(title=title, description=f'Connect: steam://connect/{data["addr"]}:{server["port"]}', color=color)
+                embed = discord.Embed(title=title, description=f'Connect: steam://connect/{data["address"]}:{server["port"]}', color=color)
             else:
                 embed = discord.Embed(title=title, color=color)
 
             embed.add_field(name=FIELD_STATUS, value=f'{emoji} **{status}**', inline=True)
-            embed.add_field(name=f'{FIELD_ADDRESS}:{FIELD_PORT}', value=f'`{data["addr"]}:{data["port"]}`', inline=True)
+            embed.add_field(name=f'{FIELD_ADDRESS}:{FIELD_PORT}', value=f'`{data["address"]}:{data["port"]}`', inline=True)
  
             flag_emoji = ('country' in server) and (':flag_' + server['country'].lower() + f': {server["country"]}') or ':united_nations: Unknown'
             embed.add_field(name=FIELD_COUNTRY, value=flag_emoji, inline=True)
@@ -301,7 +301,7 @@ class DiscordGSM():
             # server fail to query
             color = discord.Color.from_rgb(240, 71, 71) # red
             embed = discord.Embed(title='ERROR', description=f'{FIELD_STATUS}: :warning: **Fail to query**', color=color)
-            embed.add_field(name=f'{FIELD_ADDRESS}:{FIELD_PORT}', value=f'{server["addr"]}:{server["port"]}', inline=True)
+            embed.add_field(name=f'{FIELD_ADDRESS}:{FIELD_PORT}', value=f'{server["address"]}:{server["port"]}', inline=True)
         
         embed.set_footer(text=f'DiscordGSM v{VERSION} | 📺Game Server Monitor | Last update: ' + datetime.now().strftime('%a, %Y-%m-%d %I:%M:%S%p'), icon_url='https://github.com/DiscordGSM/DiscordGSM/raw/master/images/discordgsm.png')
         
@@ -357,7 +357,7 @@ async def _servers(ctx):
 
     for i in range(len(servers)):
         type += f'`{i+1}`. {servers[i]["type"]}\n'
-        addr_port += f'`{servers[i]["addr"]}:{servers[i]["port"]}`\n'
+        addr_port += f'`{servers[i]["address"]}:{servers[i]["port"]}`\n'
         channel += f'`{servers[i]["channel"]}`\n'
 
     embed.add_field(name='ID. Type', value=type, inline=True)
@@ -404,4 +404,4 @@ async def on_command_error(ctx, error):
 discordgsm = DiscordGSM(client)
 discordgsm.start()
 
-client.run(PREFIX=os.getenv("DGSM_TOKEN"))
+client.run(os.getenv("DGSM_TOKEN"))
