@@ -27,7 +27,6 @@ assert len(segs) == 3, "invalid token"
 #decode
 clientid = base64.b64decode(segs[0]).decode()
 invite_link = f"https://discord.com/api/oauth2/authorize?client_id={clientid}&permissions=339008&scope=bot"
-print(invite_link)
 
 with open('servers.json', 'r', encoding='utf-8') as file:
     try:
@@ -68,6 +67,7 @@ FIELD_UNKNOWN=os.getenv("DGSM_FIELD_UNKNOWN")
 class DiscordGSM():
     def __init__(self, client):
         print('\n----------------')
+        print(f'Invite Link: \t{invite_link}')
         print('Github: \thttps://github.com/DiscordGSM/DiscordGSM')
         print('Discord:\thttps://discord.gg/Cg4Au9T')
         print('----------------\n')
@@ -114,6 +114,8 @@ class DiscordGSM():
     # query the servers
     @tasks.loop(minutes=REFRESH_RATE)
     async def query_servers(self):
+        self.servers.refresh()
+        self.server_list = self.servers.get()
         server_count = self.servers.query()
         self.print_to_console(f'{server_count} servers queried')
 
