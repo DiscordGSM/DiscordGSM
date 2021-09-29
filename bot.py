@@ -239,98 +239,50 @@ class DiscordGSM():
             return default
         return dataset[field]
 
-    # get game server discord embed
     def get_embed(self, server):
-        # load server cache
         server_cache = ServerCache(server["address"], server["port"])
-        # load server data
         data = server_cache.get_data()
-        # get status from cache
         cache_status = server_cache.get_status()
 
-        # Parsing Data
-        if type(self.get_value(server, "locked")) == bool:
-            lock = server["locked"]
-        elif type(self.get_value(data, "password")) == bool:
-            lock = data["password"]
-        else:
-            lock = False
+        # Evaluate fields
+        lock = (server["locked"] if type(self.get_value(server, "locked")) == bool 
+            else data["password"] if type(self.get_value(data, "password")) == bool 
+            else False)
 
         title = self.get_value(server, "title") or self.get_value(data, "game") or self.get_value(server, "game")
-        if lock:
-            title = f':lock: {title}'
-        else:
-            title = f':unlock: {title}'
+        title = f':lock: {title}' if lock else  f':unlock: {title}'
         
         description = self.get_value(server, "custom")
         
-        if cache_status == "Online":
-            status = f':green_circle: **{FIELD_ONLINE}**'
-        elif cache_status == "Offline" and data is not False:
-            status = f':red_circle: **{FIELD_OFFLINE}**'
-        else:
-            status = f':yellow_circle: **{FIELD_UNKNOWN}**'
+        status = (f':green_circle: **{FIELD_ONLINE}**' if cache_status == "Online" 
+            else f':red_circle: **{FIELD_OFFLINE}**' if cache_status == "Offline" and data is not False 
+            else f':yellow_circle: **{FIELD_UNKNOWN}**')
 
         hostname = self.get_value(server, "hostname") or self.get_value(data, "name") or SPACER
-
-        players = self.get_value(data, "players", "?")
-        bots = self.get_value(data, "bots")
-        if cache_status == "Offline": 
-            players = 0
-            bots = None
-        if data is False: 
-            players = "?"
-            bots = None
-        maxplayers = self.get_value(data, "maxplayers") or self.get_value(server, "maxplayers") or "?"
-        players_string = f'{players}({bots})/{maxplayers}' if bots is not None and bots > 0 else f'{players}/{maxplayers}'
-        
+        players_string = self.determinePlayerString(server, data, cache_status)   
         port = self.get_value(data, "port")
         address = self.get_value(server, "public_address") or self.get_value(data, "address") and port and f'{data["address"]}:{port}' or SPACER
-
         password = self.get_value(server, "password")
-
         country = self.get_value(server, "country")
-
-        if self.get_value(server, "map") == False:
-            map = None
-        else:
-            map = self.get_value(server, "map") or self.get_value(data, "map")
-
+        map = None if  self.get_value(server, "map") == False else self.get_value(server, "map") or self.get_value(data, "map")
         image_url = self.get_value(server, "image_url")
-
-        # Color : if offline = Black, if full = red, if half = yellow, if less = green, if defined = defined.
-        if cache_status == "Online" and players != "?" and maxplayers != "??":
-            if players >= maxplayers:
-                color = discord.Color.from_rgb(240, 71, 71) # red
-            elif players >= maxplayers / 2:
-                color = discord.Color.from_rgb(250, 166, 26) # yellow
-            else:
-                color = discord.Color.from_rgb(67, 181, 129) # green
-        else:
-            color = discord.Color.from_rgb(0, 0, 0) # black
-        # color is defined
-        try:
-            if "color" in server:
-                h = server["color"].lstrip("#")
-                rgb = tuple(int(h[i:i+2], 16) for i in (0, 2, 4))
-                color = discord.Color.from_rgb(rgb[0], rgb[1], rgb[2])
-        except:
-            pass
+        color = self.determineColor(server, data, cache_status)
 
         # Build embed
-        if description:
-            embed = discord.Embed(title=title, description=description, color=color)
-        else:
-            embed = discord.Embed(title=title, color=color)
+        embed = (discord.Embed(title=title, description=description, color=color) if description 
+            else discord.Embed(title=title, color=color))
+
         embed.add_field(name=FIELD_STATUS, value=status, inline=True)
         embed.add_field(name=FIELD_NAME, value=hostname, inline=True)
         embed.add_field(name=SPACER, value=SPACER, inline=True)
         embed.add_field(name=FIELD_PLAYERS, value=players_string, inline=True)
         embed.add_field(name=FIELD_ADDRESS, value=f'`{address}`', inline=True)
+ 
         if password is None:
             embed.add_field(name=SPACER, value=SPACER, inline=True)
         else:
             embed.add_field(name=FIELD_PASSWORD, value=f'`{password}`', inline=True)
+
         if country:
             embed.add_field(name=FIELD_COUNTRY, value=f':flag_{country.lower()}:', inline=True)
         if map and not country:
@@ -342,10 +294,51 @@ class DiscordGSM():
         if image_url:
             embed.set_thumbnail(url=image_url)
 
-        embed.set_footer(text=f'DiscordGSM v{VERSION} | Game Server Monitor | {FIELD_LASTUPDATE}: {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}      {SPACER}', icon_url=CUSTOM_IMAGE_URL)
+        embed.set_footer(text=f'DiscordGSM {VERSION} | Game Server Monitor | {FIELD_LASTUPDATE}: {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}      {SPACER}', icon_url=CUSTOM_IMAGE_URL)
         
         return embed
         
+
+    def determineColor(self, server, data, cache_status):
+        players = self.get_value(data, "players", "?")  
+        maxplayers = self.get_value(data, "maxplayers") or self.get_value(server, "maxplayers") or "?"
+
+        if cache_status == "Online" and players != "?" and maxplayers != "??":
+            if players >= maxplayers:
+                color = discord.Color.from_rgb(240, 71, 71) # red
+            elif players >= maxplayers / 2:
+                color = discord.Color.from_rgb(250, 166, 26) # yellow
+            else:
+                color = discord.Color.from_rgb(67, 181, 129) # green
+        else:
+            color = discord.Color.from_rgb(0, 0, 0) # black
+
+        # color is defined
+        try:
+            if "color" in server:
+                h = server["color"].lstrip("#")
+                rgb = tuple(int(h[i:i+2], 16) for i in (0, 2, 4))
+                color = discord.Color.from_rgb(rgb[0], rgb[1], rgb[2])
+        except:
+            pass
+
+        return color
+
+    def determinePlayerString(self,server, data, cache_status):
+
+        players = self.get_value(data, "players", "?")  
+        maxplayers = self.get_value(data, "maxplayers") or self.get_value(server, "maxplayers") or "?"
+
+        bots = self.get_value(data, "bots")
+
+        if cache_status == "Offline": 
+            players = 0
+            bots = None
+        if data is False: 
+            players = "?"
+            bots = None
+
+        return f'{players}({bots})/{maxplayers}' if bots is not None and bots > 0 else f'{players}/{maxplayers}'
 
 client = commands.Bot(command_prefix=PREFIX)
 
