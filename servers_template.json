@@ -7,16 +7,14 @@
         "channel": "[int][mandatory] Discord channel id.",
         "image_url": "[string][optional] URL https://static.wikia.nocookie.net/minecraft_gamepedia/images/9/93/Grass_Block_JE7_BE6.png",
         "custom": "[string][optional] Additionnal information message showed at the bottom of the server embed",
-        "country": "[string][optional] Two Letter Country code, overwrite auto-detection if defined.",
         "color": "[string][optional] RGB color code : #5b8731",
+        "country": "[bool]or[string][optional] Show the country field, set to false, to disable",
         "title": "[string][optional] Title of the Embed message.",
-        "publicaddress": "[string][optional] Diplayed address with port.",
-        "lock": "[bool][optional] Will show the locked icon or unlocked icon.",
+        "public_address": "[string][optional] Diplayed address with port.",
+        "locked": "[bool][optional] Will show the locked icon or unlocked icon.",
         "password": "[string][optional] Server Password.",
-        "showmap": "[bool][optional] Show the map field.",
-        "map": "[string][optional] Overwrite Map Name.",
-        "showcountry": "[bool][optional] Show the country field.",
+        "map": "[string][optional] Overwrite Map Name. set to false to remove field.",
         "maxplayers": "[int][optional] Maximum number of players, overwrite auto-detection if defined.",
-        "hostname": "[string][optional] replaces the value of hostname for Fake Query Type."
+        "hostname": "[string][optional] replaces the value of hostname."
     }
 ]

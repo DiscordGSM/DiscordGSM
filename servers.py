@@ -83,7 +83,7 @@ class Servers:
 
     @fire_and_forget
     def query_save_cache(self, server):
-        if server["type"] == "SourceQuery":
+        if str(server["type"]).lower() == "sourcequery":
             query = SourceQuery(str(server["address"]), int(server["port"]))
             result = query.getInfo()
             query.disconnect()
@@ -94,7 +94,7 @@ class Servers:
             else:
                 server_cache.set_status("Offline")
 
-        elif server["type"] == "UT3Query":
+        elif str(server["type"]).lower() == "ut3query":
             query = UT3Query(str(server["address"]), int(server["port"]))
             result = query.getInfo()
             query.disconnect()
@@ -105,7 +105,7 @@ class Servers:
             else:
                 server_cache.set_status("Offline")
 
-        elif server["type"] == "GamedigQuery":
+        elif str(server["type"]).lower() == "gamedigquery":
             query = GamedigQuery(str(server["game"]), str(server["address"]), int(server["port"]))
             result = query.getInfo()
 
@@ -115,7 +115,9 @@ class Servers:
             else:
                 server_cache.set_status("Offline")
 
-
+        elif str(server["type"]).lower() == "fake":
+            server_cache = ServerCache(server["address"], server["port"])
+            server_cache.save_data(server["game"], server["port"], None, None, None, None, None, None)
 
 # Game Server Data
 class ServerCache:

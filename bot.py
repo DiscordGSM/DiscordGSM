@@ -63,6 +63,7 @@ FIELD_PASSWORD=os.getenv("DGSM_FIELD_PASSWORD")
 FIELD_ONLINE=os.getenv("DGSM_FIELD_ONLINE")
 FIELD_OFFLINE=os.getenv("DGSM_FIELD_OFFLINE")
 FIELD_UNKNOWN=os.getenv("DGSM_FIELD_UNKNOWN")
+SPACER=u"\u200B"
 
 class DiscordGSM():
     def __init__(self, client):
@@ -92,7 +93,7 @@ class DiscordGSM():
         # with open(icon_file_name, "rb") as file:
         #     try:
         #         await client.user.edit(username="DiscordGSM", avatar=file.read())
-        #     except:
+        #     except Exception as e:
         #         pass
 
         # print info to console
@@ -143,9 +144,9 @@ class DiscordGSM():
                 try:
                     await self.messages[i].edit(embed=self.get_embed(self.server_list[i]))
                     updated_count += 1
-                except:
+                except Exception as e:
                     self.message_error_count += 1
-                    self.print_to_console(f'ERROR: message {i} failed to edit, message deleted or no permission. Server: {self.server_list[i]["address"]}:{self.server_list[i]["port"]}')
+                    self.print_to_console(f'ERROR: message {i} failed to edit, message deleted or no permission. Server: {self.server_list[i]["address"]}:{self.server_list[i]["port"]}\n{e}')
                 finally:
                     await asyncio.sleep(SEND_DELAY)
        
@@ -168,8 +169,8 @@ class DiscordGSM():
         for channel in channels:
             try:
                 await client.get_channel(channel).purge(check=lambda m: m.author==client.user)
-            except:
-                self.print_to_console(f'ERROR: Unable to delete messages.')
+            except Exception as e:
+                self.print_to_console(f'ERROR: Unable to delete messages.\n{e}')
             finally:
                 await asyncio.sleep(SEND_DELAY)
 
@@ -179,9 +180,9 @@ class DiscordGSM():
                 message = await client.get_channel(s["channel"]).send(embed=self.get_embed(s))
                 self.messages.append(message)
                 repost_count += 1
-            except:
+            except Exception as e:
                 self.message_error_count += 1
-                self.print_to_console(f'ERROR: message fail to send, no permission. Server: {s["address"]}:{s["port"]}')
+                self.print_to_console(f'ERROR: message fail to send, no permission. Server: {s["address"]}:{s["port"]}\n{e}')
             finally:
                 await asyncio.sleep(SEND_DELAY)
 
@@ -233,85 +234,118 @@ class DiscordGSM():
             await client.change_presence(status=discord.Status.online, activity=discord.Activity(name=activity_text, type=3))
             self.print_to_console(f'Discord presence updated | {activity_text}')
 
+    def get_value(self, dataset, field, default = None):
+        if type(dataset) != dict or field not in dataset or dataset[field] is None or dataset[field] == "": 
+            return default
+        return dataset[field]
+
     # get game server discord embed
     def get_embed(self, server):
         # load server cache
         server_cache = ServerCache(server["address"], server["port"])
-
         # load server data
         data = server_cache.get_data()
+        # get status from cache
+        cache_status = server_cache.get_status()
 
-        if data:
-            # load server status Online/Offline
-            status = server_cache.get_status()
-
-            emoji = (status == "Online") and ":green_circle:" or ":red_circle:"
-
-            if status == "Online":
-                if int(data["maxplayers"]) <= int(data["players"]):
-                    color = discord.Color.from_rgb(240, 71, 71) # red
-                elif int(data["maxplayers"]) <= int(data["players"]) * 2:
-                    color = discord.Color.from_rgb(250, 166, 26) # yellew
-                else:
-                    color = discord.Color.from_rgb(67, 181, 129) # green
-                    try:
-                        if "color" in server:
-                            h = server["color"].lstrip("#")
-                            rgb = tuple(int(h[i:i+2], 16) for i in (0, 2, 4))
-                            color = discord.Color.from_rgb(rgb[0], rgb[1], rgb[2])
-                    except Exception as e:
-                        self.print_to_console(e)
-            else:
-                color = discord.Color.from_rgb(32, 34, 37) # dark
-
-            title = (data["password"] and ":lock: " or "") + f'`{data["name"]}`'
-            custom = ("custom" in server) and server["custom"] or None
-            if custom and custom.strip():
-                embed = discord.Embed(title=title, description=custom, color=color)
-            elif server["type"] == "SourceQuery" and not custom:
-                embed = discord.Embed(title=title, description=f'Connect: steam://connect/{data["address"]}:{server["port"]}', color=color)
-            else:
-                embed = discord.Embed(title=title, color=color)
-
-            embed.add_field(name=FIELD_STATUS, value=f'{emoji} **{status}**', inline=True)
-            embed.add_field(name=f'{FIELD_ADDRESS}:{FIELD_PORT}', value=f'`{data["address"]}:{data["port"]}`', inline=True)
- 
-            flag_emoji = ("country" in server) and (":flag_" + server["country"].lower() + f': {server["country"]}') or ":united_nations: Unknown"
-            embed.add_field(name=FIELD_COUNTRY, value=flag_emoji, inline=True)
-
-            embed.add_field(name=FIELD_GAME, value=data["game"], inline=True)
-            
-            if "map" in server and server["map"]:
-                embed.add_field(name=FIELD_CURRENTMAP, value=server["map"], inline=True)
-            elif len(data["map"]) > 0:
-                embed.add_field(name=FIELD_CURRENTMAP, value=data["map"], inline=True)
-            else:
-                embed.add_field(name=u"\u200B", value=u"\u200B", inline=True)
-
-            if status == "Online":
-                value = str(data["players"]) # example: 20/32
-                if int(data["bots"]) > 0: value += f' ({data["bots"]})' # example: 20 (2)/32
-            else:
-                value = "0" # example: 0/32
-
-            embed.add_field(name=FIELD_PLAYERS, value=f'{value}/{data["maxplayers"]}', inline=True)
-
-            if "image_url" in server:
-                image_url = str(server["image_url"])
-            else:
-                image_url = (CUSTOM_IMAGE_URL and CUSTOM_IMAGE_URL.strip()) and CUSTOM_IMAGE_URL or f'https://github.com/DiscordGSM/Map-Thumbnails/raw/master/{urllib.parse.quote(data["game"])}'
-                image_url += f'/{urllib.parse.quote(data["map"])}.jpg'
-
-            embed.set_thumbnail(url=image_url)
+        # Parsing Data
+        if type(self.get_value(server, "locked")) == bool:
+            lock = server["locked"]
+        elif type(self.get_value(data, "password")) == bool:
+            lock = data["password"]
         else:
-            # server fail to query
-            color = discord.Color.from_rgb(240, 71, 71) # red
-            embed = discord.Embed(title="ERROR", description=f'{FIELD_STATUS}: :warning: **Fail to query**', color=color)
-            embed.add_field(name=f'{FIELD_ADDRESS}:{FIELD_PORT}', value=f'{server["address"]}:{server["port"]}', inline=True)
+            lock = False
+
+        title = self.get_value(server, "title") or self.get_value(data, "game") or self.get_value(server, "game")
+        if lock:
+            title = f':lock: {title}'
+        else:
+            title = f':unlock: {title}'
         
-        embed.set_footer(text=f'DiscordGSM v{VERSION} | 📺Game Server Monitor | Last update: {datetime.now().strftime("%a, %Y-%m-%d %I:%M:%S%p")}', icon_url="https://github.com/DiscordGSM/DiscordGSM/raw/master/images/discordgsm.png")
+        description = self.get_value(server, "custom")
+        
+        if cache_status == "Online":
+            status = f':green_circle: **{FIELD_ONLINE}**'
+        elif cache_status == "Offline" and data is not False:
+            status = f':red_circle: **{FIELD_OFFLINE}**'
+        else:
+            status = f':yellow_circle: **{FIELD_UNKNOWN}**'
+
+        hostname = self.get_value(server, "hostname") or self.get_value(data, "name") or SPACER
+
+        players = self.get_value(data, "players", "?")
+        bots = self.get_value(data, "bots")
+        if cache_status == "Offline": 
+            players = 0
+            bots = None
+        if data is False: 
+            players = "?"
+            bots = None
+        maxplayers = self.get_value(data, "maxplayers") or self.get_value(server, "maxplayers") or "?"
+        players_string = f'{players}({bots})/{maxplayers}' if bots is not None and bots > 0 else f'{players}/{maxplayers}'
+        
+        port = self.get_value(data, "port")
+        address = self.get_value(server, "public_address") or self.get_value(data, "address") and port and f'{data["address"]}:{port}' or SPACER
+
+        password = self.get_value(server, "password")
+
+        country = self.get_value(server, "country")
+
+        if self.get_value(server, "map") == False:
+            map = None
+        else:
+            map = self.get_value(server, "map") or self.get_value(data, "map")
+
+        image_url = self.get_value(server, "image_url")
+
+        # Color : if offline = Black, if full = red, if half = yellow, if less = green, if defined = defined.
+        if cache_status == "Online" and players != "?" and maxplayers != "??":
+            if players >= maxplayers:
+                color = discord.Color.from_rgb(240, 71, 71) # red
+            elif players >= maxplayers / 2:
+                color = discord.Color.from_rgb(250, 166, 26) # yellow
+            else:
+                color = discord.Color.from_rgb(67, 181, 129) # green
+        else:
+            color = discord.Color.from_rgb(0, 0, 0) # black
+        # color is defined
+        try:
+            if "color" in server:
+                h = server["color"].lstrip("#")
+                rgb = tuple(int(h[i:i+2], 16) for i in (0, 2, 4))
+                color = discord.Color.from_rgb(rgb[0], rgb[1], rgb[2])
+        except:
+            pass
+
+        # Build embed
+        if description:
+            embed = discord.Embed(title=title, description=description, color=color)
+        else:
+            embed = discord.Embed(title=title, color=color)
+        embed.add_field(name=FIELD_STATUS, value=status, inline=True)
+        embed.add_field(name=FIELD_NAME, value=hostname, inline=True)
+        embed.add_field(name=SPACER, value=SPACER, inline=True)
+        embed.add_field(name=FIELD_PLAYERS, value=players_string, inline=True)
+        embed.add_field(name=FIELD_ADDRESS, value=f'`{address}`', inline=True)
+        if password is None:
+            embed.add_field(name=SPACER, value=SPACER, inline=True)
+        else:
+            embed.add_field(name=FIELD_PASSWORD, value=f'`{password}`', inline=True)
+        if country:
+            embed.add_field(name=FIELD_COUNTRY, value=f':flag_{country.lower()}:', inline=True)
+        if map and not country:
+            embed.add_field(name=SPACER, value=SPACER, inline=True)
+        if map:
+            embed.add_field(name=FIELD_CURRENTMAP, value=map, inline=True)
+        if map or country:
+            embed.add_field(name=SPACER, value=SPACER, inline=True)
+        if image_url:
+            embed.set_thumbnail(url=image_url)
+
+        embed.set_footer(text=f'DiscordGSM v{VERSION} | Game Server Monitor | {FIELD_LASTUPDATE}: {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}      {SPACER}', icon_url=CUSTOM_IMAGE_URL)
         
         return embed
+        
 
 client = commands.Bot(command_prefix=PREFIX)
 
