@@ -15,6 +15,11 @@ from discord.ext import tasks, commands
 from bin import *
 from servers import Servers, ServerCache
 
+# load env
+import os
+from dotenv import load_dotenv
+load_dotenv()
+
 # [HEROKU] get and load servers json from SERVERS_JSON env directly
 servers_json = os.getenv("SERVERS_JSON")
 if servers_json and servers_json.strip():
@@ -34,11 +39,6 @@ with open("servers.json", "r", encoding="utf-8") as file:
     except Exception as e:
         print(e)
         exit
-
-# load env
-import os
-from dotenv import load_dotenv
-load_dotenv()
 
 VERSION = "1.9.0"
 # Get Env
