@@ -29,12 +29,17 @@ class Servers:
                             is_edited = True
                 except:
                     pass
-
+        
+        #overwrite servers.json if a country is missing
         if is_edited:
-            with open("servers.json", "w", encoding="utf-8") as file:
-                json.dump(servers, file, ensure_ascii=False, indent=4)
+           self.update_server_file(servers)
 
         self.servers = servers 
+        return servers
+
+    def update_server_file(self, servers):
+        with open("servers.json", "w", encoding="utf-8") as file:
+            json.dump(servers, file, ensure_ascii=False, indent=4)
 
     # get servers data
     def get(self):
@@ -43,35 +48,9 @@ class Servers:
 
         return json.loads(data)
 
-    def get_distinct_servers(self):       
+    def get_distinct_server_count(self):       
         uniqueServers = [f'{server["address"]}:{str(server["port"])}' for server in self.servers]
-        return list(set(uniqueServers))
-
-
-    # add a server
-    def add(self, type, game, address, port, channel):
-        data = {}
-        data["type"], data["game"] = type, game
-        data["address"], data["port"] = address, int(port)
-        data["channel"] = int(channel)
-
-        servers = self.get()
-        servers.append(data)
-
-        with open("servers.json", "w", encoding="utf-8") as file:
-            json.dump(servers, file, ensure_ascii=False, indent=4)
-
-    # delete a server by id
-    def delete(self, id):
-        servers = self.get()
-        if 0 < int(id) <= len(servers):
-            del servers[int(id) - 1]
-
-            with open("servers.json", "w", encoding="utf-8") as file:
-                json.dump(servers, file, ensure_ascii=False, indent=4)
-            
-            return True
-        return False
+        return len(list(set(uniqueServers)))
 
     def query(self):
         for server in self.servers:
