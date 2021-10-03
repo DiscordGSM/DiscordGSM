@@ -1,5 +1,6 @@
 [
     {
+        "comment": "Informations displayed in the error messages on the console, also usefull to read through servers.json",
         "type": "[string][mandatory] GamedigQuery or SourceQuery or UT3Query or Fake.",
         "game": "[string][mandatory] See https://github.com/gamedig/node-gamedig",
         "address": "[string][mandatory] Relative server address.",
