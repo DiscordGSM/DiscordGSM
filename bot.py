@@ -211,7 +211,7 @@ class DiscordGSM():
         try:
             message = await client.get_channel(server["channel"]).fetch_message(server["message_id"])
             if not message:
-                self.print_to_console(f'ERROR: Failed to fetch message for server: {self.get_server_info(server)}. \n{e}')
+                self.print_to_console(f'ERROR: Failed to fetch message for server: {self.get_server_info(server)}.')
                 return None
             return message
         except Exception as e:
