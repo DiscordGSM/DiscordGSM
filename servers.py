@@ -8,7 +8,7 @@ def fire_and_forget(f):
     def wrapped(*args, **kwargs): return asyncio.get_event_loop().run_in_executor(None, f, *args, *kwargs)
     return wrapped
 
-# load servers.json -> get all servers type, addr, port
+# load servers.json -> get all servers type, address, port
 class Servers:
     def __init__(self):
         self.refresh()
@@ -20,53 +20,37 @@ class Servers:
         # get country code from ipinfo.io
         is_edited = False
         for server in servers:
-            if 'country' not in server:
+            if "country" not in server:
                 try:
-                    with urllib.request.urlopen(f'https://ipinfo.io/{socket.gethostbyname(server["addr"])}/country') as response:
-                        country = response.read().decode("utf8")
-                        if '{' not in country: # may response error json
-                            server['country'] = country.rstrip() # rstrip is used because of \n
+                    with urllib.request.urlopen(f'https://ipinfo.io/{socket.gethostbyname(server["address"])}/country') as response:
+                        country = response.read().decode("utf-8")
+                        if "{" not in country: # may response error json
+                            server["country"] = country.rstrip() # rstrip is used because of \n
                             is_edited = True
                 except:
                     pass
-
+        
+        #overwrite servers.json if a country is missing
         if is_edited:
-            with open('configs/servers.json', 'w', encoding='utf8') as file:
-                json.dump(servers, file, ensure_ascii=False, indent=4)
+           self.update_server_file(servers)
 
         self.servers = servers 
+        return servers
+
+    def update_server_file(self, servers):
+        with open("servers.json", "w", encoding="utf-8") as file:
+            json.dump(servers, file, ensure_ascii=False, indent=4)
 
     # get servers data
     def get(self):
-        with open('configs/servers.json', 'r') as file:
+        with open("servers.json", "r", encoding="utf-8") as file:
             data = file.read()
 
         return json.loads(data)
 
-    # add a server
-    def add(self, type, game, addr, port, channel):
-        data = {}
-        data['type'], data['game'] = type, game
-        data['addr'], data['port'] = addr, int(port)
-        data['channel'] = int(channel)
-
-        servers = self.get()
-        servers.append(data)
-
-        with open('configs/servers.json', 'w', encoding='utf8') as file:
-            json.dump(servers, file, ensure_ascii=False, indent=4)
-
-    # delete a server by id
-    def delete(self, id):
-        servers = self.get()
-        if 0 < int(id) <= len(servers):
-            del servers[int(id) - 1]
-
-            with open('configs/servers.json', 'w', encoding='utf8') as file:
-                json.dump(servers, file, ensure_ascii=False, indent=4)
-            
-            return True
-        return False
+    def get_distinct_server_count(self):       
+        uniqueServers = [f'{server["address"]}:{str(server["port"])}' for server in self.servers]
+        return len(list(set(uniqueServers)))
 
     def query(self):
         for server in self.servers:
@@ -78,61 +62,63 @@ class Servers:
 
     @fire_and_forget
     def query_save_cache(self, server):
-        if server['type'] == 'SourceQuery':
-            query = SourceQuery(str(server['addr']), int(server['port']))
+        if str(server["type"]).lower() == "sourcequery":
+            query = SourceQuery(str(server["address"]), int(server["port"]))
             result = query.getInfo()
             query.disconnect()
 
-            server_cache = ServerCache(server['addr'], server['port'])
+            server_cache = ServerCache(server["address"], server["port"])
             if result:
-                server_cache.save_data(server['game'], result['GamePort'], result['Hostname'], result['Map'], result['MaxPlayers'], result['Players'], result['Bots'], result['Password'] == 0x01)
+                server_cache.save_data(server["game"], result["GamePort"], result["Hostname"], result["Map"], result["MaxPlayers"], result["Players"], result["Bots"], result["Password"] == 0x01)
             else:
-                server_cache.set_status('Offline')
+                server_cache.set_status("Offline")
 
-        elif server['type'] == 'UT3Query':
-            query = UT3Query(str(server['addr']), int(server['port']))
+        elif str(server["type"]).lower() == "ut3query":
+            query = UT3Query(str(server["address"]), int(server["port"]))
             result = query.getInfo()
             query.disconnect()
 
-            server_cache = ServerCache(server['addr'], server['port'])
+            server_cache = ServerCache(server["address"], server["port"])
             if result:
-                server_cache.save_data(server['game'], result['hostport'], result['hostname'], result['map'], result['maxplayers'], result['numplayers'], 0, False)
+                server_cache.save_data(server["game"], result["hostport"], result["hostname"], result["map"], result["maxplayers"], result["numplayers"], 0, False)
             else:
-                server_cache.set_status('Offline')
+                server_cache.set_status("Offline")
 
-        elif server['type'] == 'GamedigQuery':
-            query = GamedigQuery(str(server['game']), str(server['addr']), int(server['port']))
+        elif str(server["type"]).lower() == "gamedigquery":
+            query = GamedigQuery(str(server["game"]), str(server["address"]), int(server["port"]))
             result = query.getInfo()
 
-            server_cache = ServerCache(server['addr'], server['port'])
+            server_cache = ServerCache(server["address"], server["port"])
             if result:
-                server_cache.save_data(server['game'], server['port'], result['Hostname'], result['Map'], result['MaxPlayers'], result['Players'], result['Bots'], result['Password'])
+                server_cache.save_data(server["game"], server["port"], result["Hostname"], result["Map"], result["MaxPlayers"], result["Players"], result["Bots"], result["Password"])
             else:
-                server_cache.set_status('Offline')
+                server_cache.set_status("Offline")
 
-
+        elif str(server["type"]).lower() == "fake":
+            server_cache = ServerCache(server["address"], server["port"])
+            server_cache.save_data(server["game"], server["port"], None, None, None, None, None, None)
 
 # Game Server Data
 class ServerCache:
-    def __init__(self, addr, port):
-        self.addr, self.port = addr, port
-        self.file_name = addr.replace(':', '.') + '-' + str(port)
+    def __init__(self, address, port):
+        self.address, self.port = address, port
+        self.file_name = address.replace(":", ".") + "-" + str(port)
         self.file_name = "".join(i for i in self.file_name if i not in "\/:*?<>|")
 
     def get_status(self):
         try:
-            with open(f'cache/{self.file_name}.txt', 'r', encoding='utf8') as file:
+            with open(f'cache/{self.file_name}.txt', "r", encoding="utf-8") as file:
                 return file.read()
         except:
             return False
 
     def set_status(self, status):
-        with open(f'cache/{self.file_name}.txt', 'w', encoding='utf8') as file:
+        with open(f'cache/{self.file_name}.txt', "w", encoding="utf-8") as file:
             file.write(str(status))
 
     def get_data(self):
         try:
-            with open(f'cache/{self.file_name}.json', 'r', encoding='utf8') as file:
+            with open(f'cache/{self.file_name}.json', "r", encoding="utf-8") as file:
                 return json.load(file)
         except EnvironmentError:
             return False
@@ -141,15 +127,15 @@ class ServerCache:
         data = {}
 
         # save game name, ip address, query port
-        data['game'], data['addr'], data['port'] = game, self.addr, gameport
+        data["game"], data["address"], data["port"] = game, self.address, gameport
 
         # save server name, map name, max players count
-        data['name'], data['map'], data['maxplayers'] = name, map, maxplayers
+        data["name"], data["map"], data["maxplayers"] = name, map, maxplayers
 
         # save current players count, bots count
-        data['players'], data['bots'], data['password'] = players, bots, password
+        data["players"], data["bots"], data["password"] = players, bots, password
 
-        self.set_status('Online')
+        self.set_status("Online")
 
-        with open(f'cache/{self.file_name}.json', 'w', encoding='utf8') as file:
+        with open(f'cache/{self.file_name}.json', "w", encoding="utf-8") as file:
             json.dump(data, file, ensure_ascii=False, indent=4)

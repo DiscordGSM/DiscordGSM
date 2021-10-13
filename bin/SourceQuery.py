@@ -17,8 +17,8 @@ import struct
 import sys
 
 class SourceQuery(object):
-	def __init__(self, addr, port=27015, timeout=5.0):
-		self.ip, self.port, self.timeout = socket.gethostbyname(addr), port, timeout
+	def __init__(self, address, port=27015, timeout=5.0):
+		self.ip, self.port, self.timeout = socket.gethostbyname(address), port, timeout
 		self.sock = False
 
 	def getInfo(self):
