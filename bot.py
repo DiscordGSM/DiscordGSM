@@ -262,7 +262,7 @@ class DiscordGSM():
             hostname = self.get_value(server, "hostname") or self.get_value(data, "name") or SPACER
             players_string = self.determinePlayerString(server, data, cache_status)   
             port = self.get_value(data, "port")
-            address = self.get_value(server, "public_address") or self.get_value(data, "address") and port and f'{data["address"]}:{port}' or SPACER
+            address = self.get_value(server, "public_address") or self.get_value(data, "address") and port and f'{self.get_value(data, "address")}:{port}' or SPACER
             password = self.get_value(server, "password")
             country = self.get_value(server, "country")
             map = None if  self.get_value(server, "map") == False else self.get_value(server, "map") or self.get_value(data, "map")
