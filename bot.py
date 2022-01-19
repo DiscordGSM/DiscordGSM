@@ -29,7 +29,7 @@ assert len(segs) == 3, "invalid token"
 clientid = base64.b64decode(segs[0]).decode()
 invite_link = f'https://discord.com/api/oauth2/authorize?client_id={clientid}&permissions=93184&scope=bot'
 
-VERSION = "1.9.2"
+VERSION = "1.9.3"
 # Get Env
 PREFIX = os.getenv("DGSM_PREFIX") or "!"
 ROLEID = os.getenv("DGSM_ROLEID")
