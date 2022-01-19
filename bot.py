@@ -245,66 +245,78 @@ class DiscordGSM():
         cache_status = server_cache.get_status()
 
         # Evaluate fields
-        lock = (server["locked"] if type(self.get_value(server, "locked")) == bool 
-            else data["password"] if type(self.get_value(data, "password")) == bool 
-            else False)
+        try:
+            lock = (server["locked"] if type(self.get_value(server, "locked")) == bool 
+                else data["password"] if type(self.get_value(data, "password")) == bool 
+                else False)
 
-        title = self.get_value(server, "title") or self.get_value(data, "game") or self.get_value(server, "game")
-        title = f':lock: {title}' if lock else  f':unlock: {title}'
-        
-        description = self.get_value(server, "custom")
-        
-        status = (f':green_circle: **{FIELD_ONLINE}**' if cache_status == "Online" 
-            else f':red_circle: **{FIELD_OFFLINE}**' if cache_status == "Offline" and data is not False 
-            else f':yellow_circle: **{FIELD_UNKNOWN}**')
+            title = self.get_value(server, "title") or self.get_value(data, "game") or self.get_value(server, "game")
+            title = f':lock: {title}' if lock else  f':unlock: {title}'
+            
+            description = self.get_value(server, "custom")
+            
+            status = (f':green_circle: **{FIELD_ONLINE}**' if cache_status == "Online" 
+                else f':red_circle: **{FIELD_OFFLINE}**' if cache_status == "Offline" and data is not False 
+                else f':yellow_circle: **{FIELD_UNKNOWN}**')
 
-        hostname = self.get_value(server, "hostname") or self.get_value(data, "name") or SPACER
-        players_string = self.determinePlayerString(server, data, cache_status)   
-        port = self.get_value(data, "port")
-        address = self.get_value(server, "public_address") or self.get_value(data, "address") and port and f'{data["address"]}:{port}' or SPACER
-        password = self.get_value(server, "password")
-        country = self.get_value(server, "country")
-        map = None if  self.get_value(server, "map") == False else self.get_value(server, "map") or self.get_value(data, "map")
-        image_url = self.get_value(server, "image_url")
-        steam_id = self.get_value(server, "steam_id")
-        direct_join = self.get_value(server, "direct_join")
-        color = self.determineColor(server, data, cache_status)
+            hostname = self.get_value(server, "hostname") or self.get_value(data, "name") or SPACER
+            players_string = self.determinePlayerString(server, data, cache_status)   
+            port = self.get_value(data, "port")
+            address = self.get_value(server, "public_address") or self.get_value(data, "address") and port and f'{data["address"]}:{port}' or SPACER
+            password = self.get_value(server, "password")
+            country = self.get_value(server, "country")
+            map = None if  self.get_value(server, "map") == False else self.get_value(server, "map") or self.get_value(data, "map")
+            image_url = self.get_value(server, "image_url")
+            steam_id = self.get_value(server, "steam_id")
+            direct_join = self.get_value(server, "direct_join")
+            color = self.determineColor(server, data, cache_status)
+        except Exception as e:
+            self.print_to_console(f'Error Evaluate fields.\n{e}')
 
         # Build embed
-        embed = (discord.Embed(title=title, description=description, color=color) if description 
-            else discord.Embed(title=title, color=color))
+        try:
+            embed = (discord.Embed(title=title, description=description, color=color) if description 
+                else discord.Embed(title=title, color=color))
 
-        embed.add_field(name=FIELD_STATUS, value=status, inline=True)
-        embed.add_field(name=FIELD_NAME, value=hostname, inline=True)
-        embed.add_field(name=SPACER, value=SPACER, inline=True)
-        embed.add_field(name=FIELD_PLAYERS, value=players_string, inline=True)
-        embed.add_field(name=FIELD_ADDRESS, value=f'`{address}`', inline=True)
- 
-        if password is None:
+            embed.add_field(name=FIELD_STATUS, value=status, inline=True)
+            embed.add_field(name=FIELD_NAME, value=hostname, inline=True)
             embed.add_field(name=SPACER, value=SPACER, inline=True)
-        else:
-            embed.add_field(name=FIELD_PASSWORD, value=f'`{password}`', inline=True)
-
-        if country:
-            embed.add_field(name=FIELD_COUNTRY, value=f':flag_{country.lower()}:', inline=True)
-        if map and not country:
-            embed.add_field(name=SPACER, value=SPACER, inline=True)
-        if map:
-            embed.add_field(name=FIELD_CURRENTMAP, value=map, inline=True)
-        if map or country:
-            embed.add_field(name=SPACER, value=SPACER, inline=True)
-        if steam_id:
-            if direct_join:
-                if password:
-                    embed.add_field(name=FIELD_JOIN, value=f'steam://connect/{data["address"]}:{port}/{password}', inline=False)
-                else:
-                    embed.add_field(name=FIELD_JOIN, value=f'steam://connect/{data["address"]}:{port}', inline=False)
+            embed.add_field(name=FIELD_PLAYERS, value=players_string, inline=True)
+            embed.add_field(name=FIELD_ADDRESS, value=f'`{address}`', inline=True)
+    
+            if password is None:
+                embed.add_field(name=SPACER, value=SPACER, inline=True)
             else:
-                embed.add_field(name=FIELD_LAUNCH, value=f'steam://rungameid/{steam_id}', inline=False)
-        if image_url:
-            embed.set_thumbnail(url=image_url)
-        embed.set_footer(text=f'DiscordGSM v.{VERSION} | Game Server Monitor | {FIELD_LASTUPDATE}: {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}{SPACER}', icon_url=CUSTOM_IMAGE_URL)
-        
+                embed.add_field(name=FIELD_PASSWORD, value=f'`{password}`', inline=True)
+
+            if country:
+                embed.add_field(name=FIELD_COUNTRY, value=f':flag_{country.lower()}:', inline=True)
+            if map and not country:
+                embed.add_field(name=SPACER, value=SPACER, inline=True)
+            if map:
+                embed.add_field(name=FIELD_CURRENTMAP, value=map, inline=True)
+            if map or country:
+                embed.add_field(name=SPACER, value=SPACER, inline=True)
+
+            if steam_id:
+                if direct_join:
+                    if password:
+                        embed.add_field(name=FIELD_JOIN, value=f'steam://connect/{address}/{password}', inline=False)
+                    else:
+                        try:
+                            embed.add_field(name=FIELD_JOIN, value=f'steam://connect/{address}', inline=False)
+                        except Exception as e:
+                            self.print_to_console(f'Error Building embed 2.\n{e}')
+                else:
+                    embed.add_field(name=FIELD_LAUNCH, value=f'steam://rungameid/{steam_id}', inline=False)
+
+            if image_url:
+                embed.set_thumbnail(url=image_url)
+
+            embed.set_footer(text=f'DiscordGSM v.{VERSION} | Game Server Monitor | {FIELD_LASTUPDATE}: {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}{SPACER}', icon_url=CUSTOM_IMAGE_URL)
+        except Exception as e:
+            self.print_to_console(f'Error Building embed.\n{e}')
+
         return embed
 
     def determineColor(self, server, data, cache_status):
@@ -342,7 +354,7 @@ class DiscordGSM():
         if cache_status == "Offline": 
             players = 0
             bots = None
-        if data is False: 
+        if data == False:
             players = "?"
             bots = None
 
