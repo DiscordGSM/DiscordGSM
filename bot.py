@@ -26,7 +26,9 @@ if servers_json and servers_json.strip():
 segs = os.getenv("DGSM_TOKEN").split(".")
 assert len(segs) == 3, "invalid token"
 #decode
-clientid = base64.b64decode(segs[0]).decode()
+mybytes = b'=='
+tokn = segs[0] + mybytes.decode('utf-8')
+clientid = base64.b64decode(tokn).decode()
 invite_link = f'https://discord.com/api/oauth2/authorize?client_id={clientid}&permissions=93184&scope=bot'
 
 VERSION = "1.9.3"
