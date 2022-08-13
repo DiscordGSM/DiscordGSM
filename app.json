@@ -17,15 +17,15 @@
             "description": "Bot token - You can get it on https://discordapp.com/developers/applications/",
             "value": ""
         },
-        "PRESENCE_RATE": {
+        "DGSM_PRESENCE_RATE": {
             "description": "Discord presence refresh rate in minutes (Default: 5)",
             "value": "5"
         },
-        "PRESENCE_TYPE": {
+        "DGSM_PRESENCE_TYPE": {
             "description": "Discord presence style (Default: 3)",
             "value": "3"
         },
-        "REFRESH_RATE": {
+        "DGSM_REFRESH_RATE": {
             "description": "Discord embed refresh rate in seconds (Default: 15)",
             "value": "15"
         },
