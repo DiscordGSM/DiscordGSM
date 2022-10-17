@@ -14,6 +14,7 @@ from servers import Servers, ServerCache
 # load env
 import os
 from dotenv import load_dotenv
+
 load_dotenv()
 
 # [HEROKU] get and load servers json from SERVERS_JSON env directly
@@ -25,7 +26,7 @@ if servers_json and servers_json.strip():
 # Check bot token and servers.json valid before start
 segs = os.getenv("DGSM_TOKEN").split(".")
 assert len(segs) == 3, "invalid token"
-#decode
+# decode
 clientid = base64.b64decode(segs[0]).decode()
 invite_link = f'https://discord.com/api/oauth2/authorize?client_id={clientid}&permissions=93184&scope=bot'
 
@@ -33,7 +34,8 @@ VERSION = "1.9.3"
 # Get Env
 PREFIX = os.getenv("DGSM_PREFIX") or "!"
 ROLEID = os.getenv("DGSM_ROLEID")
-CUSTOM_IMAGE_URL = os.getenv("DGSM_CUSTOM_IMAGE_URL") or "https://github.com/DiscordGSM/DiscordGSM/blob/master/images/discordgsm.png?raw=true"
+CUSTOM_IMAGE_URL = os.getenv(
+    "DGSM_CUSTOM_IMAGE_URL") or "https://github.com/DiscordGSM/DiscordGSM/blob/master/images/discordgsm.png?raw=true"
 REFRESH_RATE = int(os.getenv("DGSM_REFRESH_RATE")) or 5
 PRESENCE_TYPE = int(os.getenv("DGSM_PRESENCE_TYPE")) or 3
 PRESENCE_RATE = int(os.getenv("DGSM_PRESENCE_RATE")) or 5
@@ -55,9 +57,10 @@ FIELD_OFFLINE = os.getenv("DGSM_FIELD_OFFLINE") or "Offline"
 FIELD_UNKNOWN = os.getenv("DGSM_FIELD_UNKNOWN") or "Unknown"
 FIELD_JOIN = os.getenv("DGSM_FIELD_JOIN") or "Join Server"
 FIELD_LAUNCH = os.getenv("DGSM_FIELD_LAUNCH") or "Launch Game"
-SPACER=u"\u200B"
+SPACER = u"\u200B"
 
-class DiscordGSM():
+
+class DiscordGSM:
     def __init__(self, client):
 
         self.client = client
@@ -68,11 +71,11 @@ class DiscordGSM():
     def start(self):
         self.print_to_console(f'Starting DiscordGSM v.{VERSION}')
         self.update_messages.start()
-        
+
     def cancel(self):
         self.update_messages.cancel()
         self.presence_load.cancel()
-        
+
     async def on_ready(self):
         # set username and avatar | not very nice for self-hosted users.
         # icon_file_name = "images/discordgsm" + ("DGSM_TOKEN" in os.environ and "-heroku" or "") + ".png"
@@ -90,7 +93,8 @@ class DiscordGSM():
         print(f'Owner ID:\t{app_info.owner.id} ({app_info.owner.name})')
         print(f'Invite Link: \t{invite_link}')
         print("----------------")
-        print(f'Querying {self.servers.get_distinct_server_count()} servers and updating {len(self.server_list)} messages every {REFRESH_RATE} minutes.')
+        print(
+            f'Querying {self.servers.get_distinct_server_count()} servers and updating {len(self.server_list)} messages every {REFRESH_RATE} minutes.')
         print("----------------\n")
         self.presence_load.start()
 
@@ -101,7 +105,8 @@ class DiscordGSM():
         for server in self.server_list:
             if self.message_error_count > ERROR_THRESHOLD:
                 self.message_error_count = 0
-                self.print_to_console(f'ERROR: update_messages error threshold({ERROR_THRESHOLD}) reached. Reposting messages.')
+                self.print_to_console(
+                    f'ERROR: update_messages error threshold({ERROR_THRESHOLD}) reached. Reposting messages.')
                 await self.repost_messages()
                 break
             try:
@@ -114,7 +119,8 @@ class DiscordGSM():
                 updated_count += 1
             except Exception as e:
                 self.message_error_count += 1
-                self.print_to_console(f'ERROR: Failed to edit message for server: {self.get_server_info(server)}. \n {self.message_error_count} error(s) in update_messages(). Missing permissions?\n{e}')
+                self.print_to_console(
+                    f'ERROR: Failed to edit message for server: {self.get_server_info(server)}. \n {self.message_error_count} error(s) in update_messages(). Missing permissions?\n{e}')
             finally:
                 await asyncio.sleep(SEND_DELAY)
         self.print_to_console(f'{updated_count} messages updated.')
@@ -133,10 +139,10 @@ class DiscordGSM():
         repost_count = 0
         # remove old discord embed
         channels = [server["channel"] for server in self.server_list]
-        channels = list(set(channels)) # remove duplicated channels
+        channels = list(set(channels))  # remove duplicated channels
         for channel in channels:
             try:
-               await client.get_channel(channel).purge(check=lambda m: m.author==client.user)
+                await client.get_channel(channel).purge(check=lambda m: m.author == client.user)
             except Exception as e:
                 self.print_to_console(f'ERROR: Unable to delete bot messages.\n{e}')
             finally:
@@ -150,12 +156,13 @@ class DiscordGSM():
                 repost_count += 1
             except Exception as e:
                 self.message_error_count += 1
-                self.print_to_console(f'ERROR: Failed to send message for server: {self.get_server_info(server)}. Missing permissions ?\n{e}')
+                self.print_to_console(
+                    f'ERROR: Failed to send message for server: {self.get_server_info(server)}. Missing permissions ?\n{e}')
             finally:
                 self.servers.update_server_file(self.server_list)
                 await asyncio.sleep(SEND_DELAY)
         self.print_to_console(f'{repost_count} messages reposted.')
-        
+
     # 1 = display number of servers, 2 = display total players/total maxplayers, 3 = display each server one by one every 10 minutes
     def print_presense_hint(self):
         if PRESENCE_TYPE <= 1:
@@ -164,9 +171,10 @@ class DiscordGSM():
             hints = "total players/total maxplayers"
         elif PRESENCE_TYPE >= 3:
             hints = f'each server one by one every {PRESENCE_RATE} minutes'
-        self.print_to_console(f'Presence update type: {PRESENCE_TYPE} | Display {hints}')    
+        self.print_to_console(f'Presence update type: {PRESENCE_TYPE} | Display {hints}')
 
-    # refresh discord presence
+        # refresh discord presence
+
     @tasks.loop(minutes=PRESENCE_RATE)
     async def presence_load(self):
         # 1 = display number of servers, 2 = display total players/total maxplayers, 3 = display each server one by one every 10 minutes
@@ -182,16 +190,18 @@ class DiscordGSM():
                 if data and server_cache.get_status() == "Online":
                     total_activeplayers += int(data["players"])
                     total_maxplayers += int(data["maxplayers"])
-                  
-            activity_text = f'{total_activeplayers}/{total_maxplayers} active players' if total_maxplayers > 0 else "0 players" 
+
+            activity_text = f'{total_activeplayers}/{total_maxplayers} active players' if total_maxplayers > 0 else "0 players"
         elif PRESENCE_TYPE >= 3:
             if self.current_display_server >= len(self.server_list):
                 self.current_display_server = 0
 
-            server_cache = ServerCache(self.server_list[self.current_display_server]["address"], self.server_list[self.current_display_server]["port"])
+            server_cache = ServerCache(self.server_list[self.current_display_server]["address"],
+                                       self.server_list[self.current_display_server]["port"])
             data = server_cache.get_data()
             if data and server_cache.get_status() == "Online":
-                activity_text = f'{data["players"]}/{data["maxplayers"]} on {data["name"]}' if int(data["maxplayers"]) > 0 else "0 players"
+                activity_text = f'{data["players"]}/{data["maxplayers"]} on {data["name"]}' if int(
+                    data["maxplayers"]) > 0 else "0 players"
             else:
                 activity_text = None
 
@@ -199,7 +209,8 @@ class DiscordGSM():
 
         if activity_text != None:
             try:
-                await client.change_presence(status=discord.Status.online, activity=discord.Activity(name=activity_text, type=3))
+                await client.change_presence(status=discord.Status.online,
+                                             activity=discord.Activity(name=activity_text, type=3))
                 self.print_to_console(f'Discord presence updated | {activity_text}')
             except Exception as e:
                 self.print_to_console(f'ERROR: Unable to update presence.\n{e}')
@@ -221,21 +232,21 @@ class DiscordGSM():
             await asyncio.sleep(SEND_DELAY)
 
     async def query_servers(self):
-        try:    
+        try:
             self.server_list = self.servers.refresh()
             self.servers.query()
         except Exception as e:
             self.print_to_console(f'Error Querying servers: \n{e}')
         self.print_to_console(f'{self.servers.get_distinct_server_count()} servers queried.')
 
-    def get_value(self, dataset, field, default = None):
-        if type(dataset) != dict or field not in dataset or dataset[field] is None or dataset[field] == "": 
+    def get_value(self, dataset, field, default=None):
+        if type(dataset) != dict or field not in dataset or dataset[field] is None or dataset[field] == "":
             return default
         return dataset[field]
 
     def get_server_info(self, server):
         return self.get_value(server, "comment", f'{server["address"]}:{server["port"]}')
-    
+
     def get_server_list(self):
         return self.server_list
 
@@ -246,26 +257,28 @@ class DiscordGSM():
 
         # Evaluate fields
         try:
-            lock = (server["locked"] if type(self.get_value(server, "locked")) == bool 
-                else data["password"] if type(self.get_value(data, "password")) == bool 
-                else False)
+            lock = (server["locked"] if type(self.get_value(server, "locked")) == bool
+                    else data["password"] if type(self.get_value(data, "password")) == bool
+                    else False)
 
             title = self.get_value(server, "title") or self.get_value(data, "game") or self.get_value(server, "game")
-            title = f':lock: {title}' if lock else  f':unlock: {title}'
-            
+            title = f':lock: {title}' if lock else f':unlock: {title}'
+
             description = self.get_value(server, "custom")
-            
-            status = (f':green_circle: **{FIELD_ONLINE}**' if cache_status == "Online" 
-                else f':red_circle: **{FIELD_OFFLINE}**' if cache_status == "Offline" and data is not False 
-                else f':yellow_circle: **{FIELD_UNKNOWN}**')
+
+            status = (f':green_circle: **{FIELD_ONLINE}**' if cache_status == "Online"
+                      else f':red_circle: **{FIELD_OFFLINE}**' if cache_status == "Offline" and data is not False
+                      else f':yellow_circle: **{FIELD_UNKNOWN}**')
 
             hostname = self.get_value(server, "hostname") or self.get_value(data, "name") or SPACER
-            players_string = self.determinePlayerString(server, data, cache_status)   
+            players_string = self.determinePlayerString(server, data, cache_status)
             port = self.get_value(data, "port")
-            address = self.get_value(server, "public_address") or self.get_value(data, "address") and port and f'{self.get_value(data, "address")}:{port}' or SPACER
+            address = self.get_value(server, "public_address") or self.get_value(data,
+                                                                                 "address") and port and f'{self.get_value(data, "address")}:{port}' or SPACER
             password = self.get_value(server, "password")
             country = self.get_value(server, "country")
-            map = None if  self.get_value(server, "map") == False else self.get_value(server, "map") or self.get_value(data, "map")
+            map = None if self.get_value(server, "map") == False else self.get_value(server, "map") or self.get_value(
+                data, "map")
             image_url = self.get_value(server, "image_url")
             steam_id = self.get_value(server, "steam_id")
             direct_join = self.get_value(server, "direct_join")
@@ -275,15 +288,15 @@ class DiscordGSM():
 
         # Build embed
         try:
-            embed = (discord.Embed(title=title, description=description, color=color) if description 
-                else discord.Embed(title=title, color=color))
+            embed = (discord.Embed(title=title, description=description, color=color) if description
+                     else discord.Embed(title=title, color=color))
 
             embed.add_field(name=FIELD_STATUS, value=status, inline=True)
             embed.add_field(name=FIELD_NAME, value=hostname, inline=True)
             embed.add_field(name=SPACER, value=SPACER, inline=True)
             embed.add_field(name=FIELD_PLAYERS, value=players_string, inline=True)
             embed.add_field(name=FIELD_ADDRESS, value=f'`{address}`', inline=True)
-    
+
             if password is None:
                 embed.add_field(name=SPACER, value=SPACER, inline=True)
             else:
@@ -313,45 +326,47 @@ class DiscordGSM():
             if image_url:
                 embed.set_thumbnail(url=image_url)
 
-            embed.set_footer(text=f'DiscordGSM v.{VERSION} | Game Server Monitor | {FIELD_LASTUPDATE}: {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}{SPACER}', icon_url=CUSTOM_IMAGE_URL)
+            embed.set_footer(
+                text=f'DiscordGSM v.{VERSION} | Game Server Monitor | {FIELD_LASTUPDATE}: {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}{SPACER}',
+                icon_url=CUSTOM_IMAGE_URL)
         except Exception as e:
             self.print_to_console(f'Error Building embed.\n{e}')
 
         return embed
 
     def determineColor(self, server, data, cache_status):
-        players = self.get_value(data, "players", "?")  
-        maxplayers = self.get_value(data, "maxplayers") or self.get_value(server, "maxplayers") or "?"
+        players = self.get_value(data, "players", "?")
+        maxplayers: int or str = self.get_value(data, "maxplayers") or self.get_value(server, "maxplayers") or "?"
 
         if cache_status == "Online" and players != "?" and maxplayers != "??":
-            if players >= maxplayers:
-                color = discord.Color.from_rgb(240, 71, 71) # red
-            elif players >= maxplayers / 2:
-                color = discord.Color.from_rgb(250, 166, 26) # yellow
+            if int(players) >= int(maxplayers):
+                color = discord.Color.from_rgb(240, 71, 71)  # red
+            elif int(players) >= int(maxplayers) / 2:
+                color = discord.Color.from_rgb(250, 166, 26)  # yellow
             else:
-                color = discord.Color.from_rgb(67, 181, 129) # green
+                color = discord.Color.from_rgb(67, 181, 129)  # green
         else:
-            color = discord.Color.from_rgb(0, 0, 0) # black
+            color = discord.Color.from_rgb(0, 0, 0)  # black
 
         # color is defined
         try:
             if "color" in server:
                 h = server["color"].lstrip("#")
-                rgb = tuple(int(h[i:i+2], 16) for i in (0, 2, 4))
+                rgb = tuple(int(h[i:i + 2], 16) for i in (0, 2, 4))
                 color = discord.Color.from_rgb(rgb[0], rgb[1], rgb[2])
         except:
             pass
 
         return color
 
-    def determinePlayerString(self,server, data, cache_status):
+    def determinePlayerString(self, server, data, cache_status):
 
-        players = self.get_value(data, "players", "?")  
+        players = self.get_value(data, "players", "?")
         maxplayers = self.get_value(data, "maxplayers") or self.get_value(server, "maxplayers") or "?"
 
         bots = self.get_value(data, "bots")
 
-        if cache_status == "Offline": 
+        if cache_status == "Offline":
             players = 0
             bots = None
         if data == False:
@@ -360,7 +375,10 @@ class DiscordGSM():
 
         return f'{players}({bots})/{maxplayers}' if bots is not None and bots > 0 else f'{players}/{maxplayers}'
 
-client = commands.Bot(command_prefix=PREFIX)
+
+intents = discord.Intents.all()
+client = commands.Bot(command_prefix=PREFIX, intents=intents)
+
 
 # command: dgsm
 # display dgsm informations
@@ -373,11 +391,12 @@ async def _dgsm(ctx):
     description += f'\n{PREFIX}serversrefresh - Refresh the server list'
     description += f'\n{PREFIX}getserversjson - get servers.json file'
     description += f'\n{PREFIX}setserversjson - set servers.json file'
-    color = discord.Color.from_rgb(114, 137, 218) # discord theme color
+    color = discord.Color.from_rgb(114, 137, 218)  # discord theme color
     embed = discord.Embed(title=title, description=description, color=color)
     embed.add_field(name="Support server", value="https://discord.gg/Cg4Au9T", inline=True)
     embed.add_field(name="Github", value="https://github.com/DiscordGSM/DiscordGSM", inline=True)
     await ctx.send(embed=embed)
+
 
 # command: serversrefresh
 # refresh the server list
@@ -390,9 +409,10 @@ async def _serversrefresh(ctx):
 
     # send response
     title = f'Command: {PREFIX}serversrefresh'
-    color = discord.Color.from_rgb(114, 137, 218) # discord theme color
+    color = discord.Color.from_rgb(114, 137, 218)  # discord theme color
     embed = discord.Embed(title=title, description=f'Servers list refreshed', color=color)
     await ctx.send(embed=embed)
+
 
 # command: servers
 # list all the servers in servers.json
@@ -400,13 +420,13 @@ async def _serversrefresh(ctx):
 @commands.check_any(commands.has_role(ROLEID), commands.is_owner())
 async def _servers(ctx):
     title = f'Command: {PREFIX}servers'
-    color = discord.Color.from_rgb(114, 137, 218) # discord theme color
+    color = discord.Color.from_rgb(114, 137, 218)  # discord theme color
     embed = discord.Embed(title=title, color=color)
     type, address_port, channel = "", "", ""
     servers = discordgsm.get_server_list()
 
     for i in range(len(servers)):
-        type += f'`{i+1}`. {servers[i]["type"]}\n'
+        type += f'`{i + 1}`. {servers[i]["type"]}\n'
         address_port += f'`{servers[i]["address"]}:{servers[i]["port"]}`\n'
         channel += f'`{servers[i]["channel"]}`\n'
 
@@ -415,6 +435,7 @@ async def _servers(ctx):
     embed.add_field(name="Channel ID", value=channel, inline=True)
     await ctx.send(embed=embed)
 
+
 # command: getserversjson
 # get configs/servers.json
 @client.command(name="getserversjson", brief="Get servers.json file")
@@ -422,13 +443,14 @@ async def _servers(ctx):
 async def _getserversjson(ctx):
     await ctx.send(file=discord.File("servers.json"))
 
+
 # command: setserversjson
 # set servers.json
 @client.command(name="setserversjson", brief="Set servers.json file")
 @commands.check_any(commands.has_role(ROLEID), commands.is_owner())
 async def _setserversjson(ctx, *args):
     title = f'Command: {PREFIX}setserversjson'
-    color = discord.Color.from_rgb(114, 137, 218) # discord theme color
+    color = discord.Color.from_rgb(114, 137, 218)  # discord theme color
 
     if len(args) == 1:
         url = args[0]
@@ -445,13 +467,19 @@ async def _setserversjson(ctx, *args):
     embed = discord.Embed(title=title, description=description, color=color)
     await ctx.send(embed=embed)
 
+
 # error handling on Missing Role
 @client.event
 async def on_command_error(ctx, error):
     if isinstance(error, commands.CheckAnyFailure):
         await ctx.send("You don't have access to this command!", delete_after=10.0)
 
-discordgsm = DiscordGSM(client)
-discordgsm.start()
 
+@client.event
+async def on_ready():
+    print(f'{client.user.name} has connected to Discord!')
+    discordgsm.start()
+
+
+discordgsm = DiscordGSM(client)
 client.run(os.getenv("DGSM_TOKEN"))
