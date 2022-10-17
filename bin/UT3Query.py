@@ -7,6 +7,7 @@ import struct
 import sys
 import re
 
+
 class UT3Query(object):
     def __init__(self, address, port=19132, timeout=5.0):
         self.ip, self.port, self.timeout = socket.gethostbyname(address), port, timeout
@@ -37,7 +38,7 @@ class UT3Query(object):
         # second request with token
         try:
             token = int(response[5:].decode('ascii').strip('\x00')).to_bytes(4, byteorder='big', signed=True)
-            self.sock.send(b'\xFE\xFD\x00\x10\x20\x30\x40'+token+b'\xFF\xFF\xFF\x01')
+            self.sock.send(b'\xFE\xFD\x00\x10\x20\x30\x40' + token + b'\xFF\xFF\xFF\x01')
             response = self.sock.recv(4096)
         except Exception as e:
             print(e)
@@ -45,18 +46,19 @@ class UT3Query(object):
 
         try:
             response = response[16:].decode('unicode_escape').split('\x00\x00\x01player_\x00\x00')
-            response = re.sub(r'§.', '', response[0]).replace('\n', ' ') # remove color and next line
-            #print(response) # useful output
+            response = re.sub(r'§.', '', response[0]).replace('\n', ' ')  # remove color and next line
+            # print(response) # useful output
             kv = response.split('\x00')
             result = {}
             for i in range(0, len(kv), 2):
-                result[kv[i]] = kv[i+1]
+                result[kv[i]] = kv[i + 1]
             return result
         except Exception as e:
             print(e)
             return False
 
         return False
+
 
 if __name__ == '__main__':
     ut3Query = UT3Query('145.239.205.107', 25565)
